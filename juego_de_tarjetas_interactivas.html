@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarjetas: La Constitución</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f8fafc; 
+            color: #1e293b; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 20px; 
+            box-sizing: border-box; 
+        }
+        .app-container { 
+            background: white; 
+            width: 100%; 
+            max-width: 450px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            padding: 30px; 
+            text-align: center; 
+        }
+        .hidden { display: none !important; }
+        h1 { color: #1e3a8a; font-size: 28px; margin-top: 0; margin-bottom: 10px; }
+        h2 { font-size: 14px; text-transform: uppercase; margin-bottom: 10px; color: #3b82f6; }
+        p.subtitle { color: #64748b; margin-bottom: 30px; }
+        .btn { 
+            width: 100%; 
+            padding: 15px; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+        }
+        .btn-primary { background: #2563eb; color: white; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
+        .btn-primary:hover { background: #1d4ed8; }
+        .header-info { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 14px; 
+            font-weight: bold; 
+            color: #94a3b8; 
+            margin-bottom: 20px; 
+        }
+        .score-live { color: #22c55e; }
+        .card-content { 
+            background: #eff6ff; 
+            border: 2px solid #dbeafe; 
+            border-radius: 16px; 
+            padding: 25px; 
+            margin-bottom: 25px; 
+            min-height: 200px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+        }
+        .pregunta { font-size: 20px; font-weight: 600; color: #0f172a; margin: 0; }
+        .respuesta-container { margin-top: 25px; padding-top: 25px; border-top: 1px solid #bfdbfe; }
+        .respuesta-container h2 { color: #16a34a; }
+        .respuesta { font-size: 18px; color: #334155; margin: 0; font-weight: 500; }
+        .botones-evaluacion { display: flex; gap: 15px; }
+        .btn-falle { flex: 1; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .btn-acerte { flex: 1; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .score-final { font-size: 48px; font-weight: 900; color: #2563eb; margin: 20px 0 30px; }
+        .emoji-resultado { font-size: 70px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Pantalla de inicio -->
+        <div id="start-screen">
+            <h1>Constitución Española</h1>
+            <p class="subtitle">Nivel 1: Estructura. 20 preguntas aleatorias.</p>
+            <button onclick="iniciarJuego()" class="btn btn-primary">Comenzar a Repasar</button>
+        </div>
+
+        <!-- Pantalla de la tarjeta -->
+        <div id="card-screen" class="hidden">
+            <div class="header-info">
+                <span id="progress">1 / 20</span>
+                <span id="score-live" class="score-live">Aciertos: 0</span>
+            </div>
+
+            <div class="card-content">
+                <h2>Pregunta</h2>
+                <p id="pregunta" class="pregunta"></p>
+                
+                <div id="respuesta-container" class="respuesta-container hidden">
+                    <h2>Respuesta</h2>
+                    <p id="respuesta" class="respuesta"></p>
+                </div>
+            </div>
+
+            <button id="btn-ver-respuesta" onclick="mostrarRespuesta()" class="btn btn-primary">Ver Respuesta</button>
+
+            <div id="botones-evaluacion" class="botones-evaluacion hidden">
+                <button onclick="siguiente(false)" class="btn btn-falle">❌ Fallé</button>
+                <button onclick="siguiente(true)" class="btn btn-acerte">✅ Acerté</button>
+            </div>
+        </div>
+
+        <!-- Pantalla de resultados -->
+        <div id="end-screen" class="hidden">
+            <h1>¡Repaso Terminado!</h1>
+            <div class="emoji-resultado" id="emoji-resultado">🎉</div>
+            <p>Has acertado</p>
+            <div class="score-final"><span id="score-final"></span> de 20</div>
+            <button onclick="iniciarJuego()" class="btn btn-primary">Volver a Intentarlo</button>
+        </div>
+    </div>
+
+    <script>
+        const tarjetasOriginales = [
+            { q: "¿Cuántos artículos tiene en total la Constitución Española?", a: "169 artículos." },
+            { q: "¿En qué fecha exacta fue ratificada la Constitución en referéndum?", a: "El 6 de diciembre de 1978." },
+            { q: "¿Tiene el Preámbulo fuerza legal o valor normativo para multarte?", a: "FALSO. Es solo una declaración de intenciones." },
+            { q: "¿Qué artículos forman el Título Preliminar (los 'cimientos')?", a: "Del artículo 1 al 9." },
+            { q: "¿Qué temas recoge el Título Preliminar?", a: "Lo más básico del Estado: la bandera, el idioma, la capital, etc." },
+            { q: "¿De qué trata el Título I?", a: "Derechos y Deberes." },
+            { q: "¿De qué trata el Título II?", a: "La Corona." },
+            { q: "¿Qué se regula en el Título III?", a: "Las Cortes Generales (Congreso y Senado)." },
+            { q: "¿De qué trata el Título IV?", a: "El Gobierno (Presidente y Ministros)." },
+            { q: "¿Qué Título regula las Relaciones entre el Gobierno y las Cortes?", a: "El Título V." },
+            { q: "¿Qué poder del Estado encontramos en el Título VI?", a: "El Poder Judicial." },
+            { q: "¿De qué trata el Título VII?", a: "Economía y Hacienda." },
+            { q: "¿En qué Título se regula la Organización Territorial?", a: "En el Título VIII." },
+            { q: "¿Qué órgano se regula en el Título IX?", a: "El Tribunal Constitucional." },
+            { q: "¿De qué trata el Título X?", a: "La Reforma de la propia Constitución." },
+            { q: "¿Cuál es el orden oficial real de las Disposiciones?", a: "Adicionales, Transitorias, Derogatoria y Final (ATDF)." },
+            { q: "¿Cuántas Disposiciones Adicionales y Transitorias hay?", a: "4 Adicionales y 9 Transitorias." },
+            { q: "¿Para qué servían las Disposiciones Transitorias?", a: "Para el periodo de adaptación a la nueva ley de 1978." },
+            { q: "¿Para qué sirve la única Disposición Derogatoria?", a: "Para anular/cancelar todas las leyes de la dictadura." },
+            { q: "¿De qué informa la única Disposición Final?", a: "De cuándo empieza a funcionar la Constitución." }
+        ];
+
+        let mazo = [];
+        let indiceActual = 0;
+        let aciertos = 0;
+
+        function iniciarJuego() {
+            mazo = [...tarjetasOriginales].sort(() => Math.random() - 0.5);
+            indiceActual = 0;
+            aciertos = 0;
+            
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('card-screen').classList.remove('hidden');
+            
+            mostrarTarjeta();
+        }
+
+        function mostrarTarjeta() {
+            document.getElementById('progress').innerText = `${indiceActual + 1} / ${mazo.length}`;
+            document.getElementById('score-live').innerText = `Aciertos: ${aciertos}`;
+            
+            document.getElementById('pregunta').innerText = mazo[indiceActual].q;
+            document.getElementById('respuesta').innerText = mazo[indiceActual].a;
+            
+            document.getElementById('respuesta-container').classList.add('hidden');
+            document.getElementById('botones-evaluacion').classList.add('hidden');
+            document.getElementById('btn-ver-respuesta').classList.remove('hidden');
+        }
+
+        function mostrarRespuesta() {
+            document.getElementById('respuesta-container').classList.remove('hidden');
+            document.getElementById('btn-ver-respuesta').classList.add('hidden');
+            document.getElementById('botones-evaluacion').classList.remove('hidden');
+        }
+
+        function siguiente(acerto) {
+            if (acerto) aciertos++;
+            indiceActual++;
+            
+            if (indiceActual < mazo.length) {
+                mostrarTarjeta();
+            } else {
+                mostrarResultados();
+            }
+        }
+
+        function mostrarResultados() {
+            document.getElementById('card-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('score-final').innerText = aciertos;
+            
+            let emoji = "🎉";
+            if(aciertos < 10) emoji = "📚";
+            if(aciertos === 20) emoji = "🏆";
+            document.getElementById('emoji-resultado').innerText = emoji;
+        }
+    </script>
+</body>
+</html>
