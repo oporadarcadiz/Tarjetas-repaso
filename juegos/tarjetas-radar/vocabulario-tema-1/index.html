@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Memoriza vocabulario · OpoRadarCádiz</title>
+<style>
+:root{color-scheme:light;--green:#2e7d32;--ink:#092e49}*{box-sizing:border-box}body{margin:0;padding:24px 16px;background:#f4f7fb;color:var(--ink);font:17px/1.5 system-ui,sans-serif}main{max-width:560px;margin:3vh auto;background:white;border-radius:20px;padding:28px;box-shadow:0 16px 45px #17203316}small{color:var(--green);font-weight:750}h1{font-size:29px;line-height:1.15}button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:14px;cursor:pointer;background:#1565c0;color:white;min-height:48px}button:focus-visible{outline:3px solid #df7900;outline-offset:4px}button:disabled{opacity:.45;cursor:default}[hidden]{display:none!important}.row{display:flex;gap:12px;margin-top:16px}.row>*{flex:1}.card{display:grid;perspective:1000px;width:100%;background:transparent;padding:0;color:var(--ink);text-align:center;min-height:290px}.face{grid-area:1/1;border:2px solid #cce6d0;border-radius:18px;background:#eef7ef;padding:26px;display:flex;flex-direction:column;justify-content:center;backface-visibility:hidden;transition:transform .35s}.front{transform:rotateY(0)}.back{transform:rotateY(-180deg);font-size:17px;font-weight:400;white-space:pre-line}.flipped .front{transform:rotateY(180deg)}.flipped .back{transform:rotateY(0)}.word{font-size:26px}.hint{font-size:14px;font-weight:400;margin-top:15px}.good{background:#e4f3e5;color:#225d26}.bad{background:#fce9e7;color:#9e261c}.secondary{background:#edf1f6;color:var(--ink)}progress{width:100%;accent-color:var(--green);margin:16px 0}#status{font-size:15px}footer{font-size:13px;color:#526573;margin-top:24px}@media(prefers-reduced-motion:reduce){.face{transition:none}}@media(max-width:400px){main{padding:20px}.row{flex-wrap:wrap}.row>*{flex-basis:140px}}
+</style>
+<main><small>OPORADARCÁDIZ · NIVEL 1</small><h1>Memoriza vocabulario</h1><p>Piensa qué significa la palabra. Dale la vuelta y decide si has acertado.</p>
+<section id="play"><div id="status" aria-live="polite"></div><progress id="progress" max="13" value="0" aria-label="Tarjetas completadas"></progress>
+<button id="card" class="card" aria-label="Dar la vuelta a la tarjeta"><span class="face front"><span class="word" id="word"></span><span class="hint">Pulsa para ver la respuesta</span></span><span class="face back" id="answer" aria-hidden="true"></span></button>
+<div class="row"><button id="fail" class="bad" disabled>Fallé</button><button id="pass" class="good" disabled>Acerté</button></div></section>
+<section id="result" hidden aria-live="polite"><h2>Ronda terminada</h2><p id="score"></p><div class="row"><button id="retry">Repasar mis fallos</button><button id="all" class="secondary">Todas otra vez</button></div></section>
+<footer>El repaso de tus fallos se guarda solo en este navegador, si permite almacenamiento. No se envían datos. <button id="saved" class="secondary" style="margin-top:12px;font-size:14px">Repasar fallos guardados</button><p id="notice" role="status"></p></footer></main>
+<script>
+'use strict';
+const cards = [
+['Constitución','Es la ley fundamental que todas las demás leyes deben respetar.'],
+['Soberanía','Es el poder de decidir cómo se organiza y gobierna un país.'],
+['Democracia','Es un sistema en el que el pueblo participa y elige a sus representantes mediante el voto.'],
+['Garantía','Es una medida que ayuda a proteger un derecho.'],
+['Institución','Es una organización que cumple una función importante para la sociedad.'],
+['Títulos oficiales','Son los nombres de los grandes bloques de la Constitución.'],
+['Cortes Generales','Son el Congreso de los Diputados y el Senado, que representan al pueblo español.'],
+['Senado','Es la cámara de las Cortes Generales que representa a los territorios.'],
+['Tribunal Constitucional','Es el intérprete supremo de la Constitución. Decide cómo se entiende la Constitución cuando hay una cuestión constitucional o si una norma la respeta.\nOjo: no forma parte del Poder Judicial ni es el tribunal superior de todos los jueces.'],
+['Sancionar · dos significados','1. El Rey da su aprobación formal a una ley.\n2. Imponer una multa o un castigo.\nCuando el Rey sanciona una ley, usamos el primer significado.'],
+['Ratificar','Es confirmar una decisión, como hizo el pueblo al votar la Constitución.'],
+['Entrar en vigor','Es empezar a tener efecto y ser de obligado cumplimiento.'],
+['Publicar en el BOE','Es dar a conocer una norma en el Boletín Oficial del Estado.']];
+const $=id=>document.getElementById(id), key='oporadar_vocabulario_t1_v1';
+let saved=new Set(), queue=[], pos=0, errors=[], successes=0, revealed=false, rated=false;
+try{const data=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(data))saved=new Set(data.filter(x=>Number.isInteger(x)&&x>=0&&x<cards.length));}catch{}
+function persist(){try{localStorage.setItem(key,JSON.stringify([...saved]));}catch{$('notice').textContent='Este navegador no permite guardar el repaso. Puedes continuar esta ronda.';}}
+function start(ids){queue=[...ids];for(let i=queue.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[queue[i],queue[j]]=[queue[j],queue[i]];}pos=0;errors=[];successes=0;$('play').hidden=false;$('result').hidden=true;$('progress').max=queue.length;show();}
+function show(){revealed=false;rated=false;$('card').classList.remove('flipped');$('answer').setAttribute('aria-hidden','true');$('card').querySelector('.front').setAttribute('aria-hidden','false');$('card').setAttribute('aria-label','Dar la vuelta: '+cards[queue[pos]][0]);$('word').textContent=cards[queue[pos]][0];$('answer').textContent=cards[queue[pos]][1];$('fail').disabled=$('pass').disabled=true;$('status').textContent=`Tarjeta ${pos+1} de ${queue.length} · ${successes} aciertos`;$('progress').value=pos;$('card').focus({preventScroll:true});}
+$('card').onclick=()=>{revealed=true;$('card').classList.add('flipped');$('answer').setAttribute('aria-hidden','false');$('card').querySelector('.front').setAttribute('aria-hidden','true');$('card').setAttribute('aria-label',cards[queue[pos]][1]);$('fail').disabled=$('pass').disabled=false;};
+function rate(ok){if(!revealed||rated)return;rated=true;const id=queue[pos];if(ok){successes++;saved.delete(id);}else{errors.push(id);saved.add(id);}persist();pos++;if(pos<queue.length)show();else{$('play').hidden=true;$('result').hidden=false;$('score').textContent=`${successes} aciertos de ${queue.length}. ${errors.length?errors.length+' palabras para volver a practicar.':'¡Has recordado todas las palabras!'} `;$('retry').disabled=!errors.length;$('all').focus();}}
+$('fail').onclick=()=>rate(false);$('pass').onclick=()=>rate(true);$('retry').onclick=()=>start(errors);$('all').onclick=()=>start(cards.map((_,i)=>i));$('saved').onclick=()=>{if(saved.size)start([...saved]);else $('notice').textContent='No tienes fallos guardados.';};start(cards.map((_,i)=>i));
+</script></html>
+
