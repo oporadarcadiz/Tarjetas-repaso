@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tarjetas Radar · Tema 1 · OpoRadarCádiz</title>
+<style>
+:root{--verde:#2E7D32;--azul:#1565C0;--fondo:#f4f7fb;--texto:#172033;--suave:#eef7ef;--rojo:#b42318;--ambar:#9a6700}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;background:var(--fondo);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--texto)}
+.app{width:100%;max-width:520px;background:#fff;border-radius:20px;box-shadow:0 16px 45px rgba(23,32,51,.12);padding:26px}
+.brand{font-weight:900;letter-spacing:.08em;color:var(--verde);font-size:13px}.level{display:inline-block;margin-top:8px;padding:6px 10px;border-radius:999px;background:#e9f6eb;color:var(--verde);font-weight:800;font-size:12px}
+h1{font-size:28px;line-height:1.05;margin:14px 0 8px}p{line-height:1.45}.sub{color:#667085;margin-top:0}.hidden{display:none!important}
+.top{display:flex;justify-content:space-between;gap:12px;font-size:13px;font-weight:800;color:#667085;margin-bottom:14px}.score{color:var(--verde)}
+.bar{height:8px;background:#e8edf4;border-radius:999px;overflow:hidden;margin-bottom:18px}.bar>div{height:100%;background:var(--verde);width:0;transition:.25s}
+.card{background:var(--suave);border:2px solid #cce6d0;border-radius:18px;padding:24px;min-height:260px;display:flex;flex-direction:column;justify-content:center}
+.kicker{text-transform:uppercase;font-size:12px;font-weight:900;color:var(--verde);letter-spacing:.08em}.q{font-size:21px;font-weight:800;margin:8px 0 0}.answer{border-top:1px solid #b8d9be;margin-top:22px;padding-top:18px}.answer strong{display:block;color:var(--verde);margin-bottom:6px}.trap{margin-top:8px;color:#667085;font-size:14px}
+button{width:100%;border:0;border-radius:13px;padding:14px 16px;font-size:16px;font-weight:900;cursor:pointer}.primary{background:var(--azul);color:#fff;margin-top:18px}.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px}.bad{background:#feeceb;color:var(--rojo)}.doubt{background:#fff3d6;color:var(--ambar)}.good{background:#e8f7ea;color:var(--verde)}
+.result{font-size:46px;font-weight:950;color:var(--azul);margin:14px 0}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}.stat{background:#f5f7fa;padding:12px 8px;border-radius:12px}.stat b{display:block;font-size:20px}
+.actions{display:grid;gap:9px}.secondary{background:#eef2f7;color:#243047}
+.small{font-size:12px;color:#7b8794;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="brand">OPORADARCÁDIZ · TARJETAS RADAR</div>
+
+<section id="start">
+  <span class="level">NIVEL 1 · TOMA DE CONTACTO</span>
+  <h1>Tema 1 · Constitución Española</h1>
+  <p class="sub">20 tarjetas de recuerdo activo. Piensa primero, destapa después y marca cómo te ha ido.</p>
+  <button class="primary" onclick="start(false)">📡 Activar Radar</button>
+  <p class="small">Tu progreso se guarda en este dispositivo.</p>
+</section>
+
+<section id="game" class="hidden">
+  <div class="top"><span id="progress"></span><span class="score" id="score"></span></div>
+  <div class="bar"><div id="bar"></div></div>
+  <div class="card">
+    <div class="kicker">Pregunta</div>
+    <p class="q" id="question"></p>
+    <div id="answerBox" class="answer hidden">
+      <strong>Respuesta</strong>
+      <div id="answer"></div>
+      <div id="trap" class="trap"></div>
+    </div>
+  </div>
+  <button id="showBtn" class="primary" onclick="showAnswer()">Ver respuesta</button>
+  <div id="rate" class="grid hidden">
+    <button class="bad" onclick="next('fallo')">❌ Fallé</button>
+    <button class="doubt" onclick="next('duda')">🤔 Dudé</button>
+    <button class="good" onclick="next('acierto')">✅ Acerté</button>
+  </div>
+</section>
+
+<section id="end" class="hidden">
+  <span class="level">RASTREO COMPLETADO</span>
+  <h1>Resultado del repaso</h1>
+  <div class="result"><span id="mastery">0</span>%</div>
+  <div class="stats">
+    <div class="stat"><b id="okN">0</b>Aciertos</div>
+    <div class="stat"><b id="doubtN">0</b>Dudas</div>
+    <div class="stat"><b id="badN">0</b>Fallos</div>
+  </div>
+  <div class="actions">
+    <button class="primary" onclick="start(false)">🔄 Repetir todas</button>
+    <button class="secondary" id="reviewBtn" onclick="start(true)">🎯 Repasar dudas y fallos</button>
+  </div>
+</section>
+</div>
+<script>
+const cards=[
+{q:"¿Cuántos artículos tiene en total la Constitución Española?",a:"169 artículos.",t:"Dato clave de estructura."},
+{q:"¿En qué fecha fue ratificada la Constitución en referéndum?",a:"6 de diciembre de 1978.",t:"No confundas ratificación con otras fechas del proceso."},
+{q:"¿El Preámbulo tiene valor normativo directo?",a:"No. Funciona como presentación y declaración de intenciones.",t:"En este nivel: Preámbulo ≠ articulado."},
+{q:"¿Qué artículos forman el Título Preliminar?",a:"Del artículo 1 al 9.",t:"Son los cimientos del texto."},
+{q:"¿Qué recoge, a grandes rasgos, el Título Preliminar?",a:"Elementos básicos del Estado.",t:"Bandera, idioma, capital y principios básicos."},
+{q:"¿De qué trata el Título I?",a:"Derechos y deberes.",t:"I = derechos y deberes."},
+{q:"¿De qué trata el Título II?",a:"La Corona.",t:"II = Corona."},
+{q:"¿Qué regula el Título III?",a:"Las Cortes Generales.",t:"Congreso y Senado."},
+{q:"¿De qué trata el Título IV?",a:"El Gobierno.",t:"Presidente y Ministros."},
+{q:"¿Qué regula el Título V?",a:"Las relaciones entre el Gobierno y las Cortes Generales.",t:"V conecta Gobierno ↔ Cortes."},
+{q:"¿Qué regula el Título VI?",a:"El Poder Judicial.",t:"VI = Poder Judicial."},
+{q:"¿De qué trata el Título VII?",a:"Economía y Hacienda.",t:"VII = Economía y Hacienda."},
+{q:"¿En qué Título se regula la organización territorial?",a:"En el Título VIII.",t:"VIII = Organización Territorial."},
+{q:"¿Qué órgano aparece en el Título IX?",a:"El Tribunal Constitucional.",t:"IX = Tribunal Constitucional."},
+{q:"¿De qué trata el Título X?",a:"De la reforma de la Constitución.",t:"X cierra los Títulos."},
+{q:"¿Cuál es el orden real de las disposiciones?",a:"Adicionales, Transitorias, Derogatoria y Final.",t:"ATDF."},
+{q:"¿Cuántas disposiciones adicionales hay?",a:"4.",t:"Mnemotecnia del tema: 4-9-1-1."},
+{q:"¿Cuántas disposiciones transitorias hay?",a:"9.",t:"Mnemotecnia del tema: 4-9-1-1."},
+{q:"¿Cuántas disposiciones derogatorias y finales hay?",a:"1 derogatoria y 1 final.",t:"Completa 4-9-1-1."},
+{q:"¿Qué hace la disposición derogatoria según el esquema del tema?",a:"Deroga las normas anteriores que sean contrarias a la Constitución.",t:"No significa que desaparezca automáticamente toda norma anterior."}
+];
+
+let deck=[],i=0,stats={acierto:0,duda:0,fallo:0},reviewPool=[];
+
+function shuffle(a){for(let j=a.length-1;j>0;j--){const k=Math.floor(Math.random()*(j+1));[a[j],a[k]]=[a[k],a[j]]}return a}
+function start(onlyReview){
+  const saved=JSON.parse(localStorage.getItem('oporadar_t1_review')||'[]');
+  deck=shuffle((onlyReview && saved.length?saved:cards).map(x=>({...x})));
+  i=0;stats={acierto:0,duda:0,fallo:0};reviewPool=[];
+  document.getElementById('start').classList.add('hidden');
+  document.getElementById('end').classList.add('hidden');
+  document.getElementById('game').classList.remove('hidden');
+  render();
+}
+function render(){
+  const c=deck[i];
+  document.getElementById('progress').textContent=`${i+1} / ${deck.length}`;
+  document.getElementById('score').textContent=`Aciertos: ${stats.acierto}`;
+  document.getElementById('bar').style.width=`${(i/deck.length)*100}%`;
+  document.getElementById('question').textContent=c.q;
+  document.getElementById('answer').textContent=c.a;
+  document.getElementById('trap').textContent=c.t?`⚠️ ${c.t}`:"";
+  document.getElementById('answerBox').classList.add('hidden');
+  document.getElementById('rate').classList.add('hidden');
+  document.getElementById('showBtn').classList.remove('hidden');
+}
+function showAnswer(){
+  document.getElementById('answerBox').classList.remove('hidden');
+  document.getElementById('rate').classList.remove('hidden');
+  document.getElementById('showBtn').classList.add('hidden');
+}
+function next(type){
+  stats[type]++;
+  if(type!=='acierto') reviewPool.push(deck[i]);
+  i++;
+  if(i<deck.length) render(); else finish();
+}
+function finish(){
+  document.getElementById('game').classList.add('hidden');
+  document.getElementById('end').classList.remove('hidden');
+  const mastery=Math.round((stats.acierto/deck.length)*100);
+  document.getElementById('mastery').textContent=mastery;
+  document.getElementById('okN').textContent=stats.acierto;
+  document.getElementById('doubtN').textContent=stats.duda;
+  document.getElementById('badN').textContent=stats.fallo;
+  localStorage.setItem('oporadar_t1_review',JSON.stringify(reviewPool));
+  localStorage.setItem('oporadar_t1_last',JSON.stringify({date:new Date().toISOString(),mastery,stats}));
+  document.getElementById('reviewBtn').disabled=reviewPool.length===0;
+}
+</script>
+</body>
+</html>
