@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Detector de Mentiras · Tema 1 · OpoRadarCádiz</title>
+<style>
+:root{--verde:#2E7D32;--rojo:#C62828;--azul:#1565C0;--fondo:#f5f7fb;--texto:#172033;--suave:#f7fbf8}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--fondo);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--texto);display:flex;align-items:center;justify-content:center;padding:18px}
+.app{width:100%;max-width:560px;background:#fff;border-radius:20px;box-shadow:0 16px 45px rgba(23,32,51,.12);padding:26px}
+.brand{font-size:13px;font-weight:900;letter-spacing:.08em;color:var(--verde)}
+.tag{display:inline-block;margin-top:8px;padding:6px 10px;border-radius:999px;background:#e9f6eb;color:var(--verde);font-size:12px;font-weight:900}
+h1{font-size:28px;line-height:1.05;margin:14px 0 8px}.sub{color:#667085;line-height:1.45}
+.hidden{display:none!important}.top{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px;color:#667085;font-size:13px;font-weight:900}
+.bar{height:8px;background:#e9edf3;border-radius:999px;overflow:hidden;margin-bottom:18px}.bar>div{height:100%;background:var(--verde);width:0;transition:.25s}
+.card{background:var(--suave);border:2px solid #d3ead7;border-radius:18px;padding:24px;min-height:230px;display:flex;flex-direction:column;justify-content:center}
+.kicker{font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--verde)}
+.statement{font-size:22px;font-weight:850;line-height:1.3;margin:10px 0 0}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+button{border:0;border-radius:13px;padding:14px 16px;font-size:16px;font-weight:900;cursor:pointer}
+.true{background:#e8f7ea;color:var(--verde)}.false{background:#feeceb;color:var(--rojo)}
+.feedback{margin-top:16px;border-radius:14px;padding:16px;line-height:1.45}.ok{background:#eaf7ec;border:1px solid #b8dfbf}.bad{background:#fff0ef;border:1px solid #efc1bd}
+.feedback strong{display:block;margin-bottom:5px}.primary{width:100%;background:var(--azul);color:#fff;margin-top:18px}
+.result{font-size:48px;font-weight:950;color:var(--azul);margin:15px 0}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.stat{background:#f3f5f8;border-radius:12px;padding:14px}.stat b{display:block;font-size:22px}
+.small{font-size:12px;color:#7b8794}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="brand">OPORADARCÁDIZ · DETECTOR DE MENTIRAS</div>
+
+<section id="start">
+  <span class="tag">NIVEL 1 · DECISIÓN RÁPIDA</span>
+  <h1>Tema 1 · Constitución Española</h1>
+  <p class="sub">Lee cada afirmación y decide si es verdadera o falsa. El objetivo es entrenar atención y detectar errores típicos.</p>
+  <button class="primary" onclick="start()">🎯 Empezar</button>
+</section>
+
+<section id="game" class="hidden">
+  <div class="top"><span id="progress"></span><span id="score"></span></div>
+  <div class="bar"><div id="bar"></div></div>
+  <div class="card">
+    <div class="kicker">¿Verdad o mentira?</div>
+    <div class="statement" id="statement"></div>
+  </div>
+  <div id="choices" class="choices">
+    <button class="true" onclick="answer(true)">✅ Verdadero</button>
+    <button class="false" onclick="answer(false)">❌ Falso</button>
+  </div>
+  <div id="feedback" class="feedback hidden"></div>
+  <button id="nextBtn" class="primary hidden" onclick="next()">Siguiente</button>
+</section>
+
+<section id="end" class="hidden">
+  <span class="tag">RADAR COMPLETADO</span>
+  <h1>Resultado</h1>
+  <div class="result"><span id="percent">0</span>%</div>
+  <div class="stats">
+    <div class="stat"><b id="okN">0</b>Aciertos</div>
+    <div class="stat"><b id="badN">0</b>Fallos</div>
+  </div>
+  <button class="primary" onclick="start()">🔄 Repetir detector</button>
+  <p class="small">Consejo: si fallas una, vuelve a leer la frase y busca la palabra que cambia el sentido.</p>
+</section>
+</div>
+
+<script>
+const items=[
+{s:"La Constitución Española tiene 169 artículos.",v:true,e:"Correcto: 169 artículos."},
+{s:"El Preámbulo forma parte del articulado numerado de la Constitución.",v:false,e:"Falso: el Preámbulo no es un artículo numerado."},
+{s:"El Título Preliminar comprende los artículos 1 al 9.",v:true,e:"Correcto: artículos 1 a 9."},
+{s:"El Título I regula la Corona.",v:false,e:"Falso: el Título I trata de derechos y deberes."},
+{s:"El Título II trata de la Corona.",v:true,e:"Correcto: Título II = Corona."},
+{s:"El Título III regula las Cortes Generales.",v:true,e:"Correcto: Congreso y Senado."},
+{s:"El Título IV trata del Poder Judicial.",v:false,e:"Falso: el Título IV trata del Gobierno."},
+{s:"El Título V regula las relaciones entre el Gobierno y las Cortes Generales.",v:true,e:"Correcto."},
+{s:"El Título VI se refiere al Poder Judicial.",v:true,e:"Correcto."},
+{s:"El Título VII trata de Economía y Hacienda.",v:true,e:"Correcto."},
+{s:"El Título VIII regula la organización territorial.",v:true,e:"Correcto."},
+{s:"El Tribunal Constitucional aparece en el Título IX.",v:true,e:"Correcto."},
+{s:"La reforma constitucional aparece en el Título X.",v:true,e:"Correcto."},
+{s:"La Constitución tiene 9 disposiciones adicionales.",v:false,e:"Falso: hay 4 disposiciones adicionales."},
+{s:"La Constitución tiene 9 disposiciones transitorias.",v:true,e:"Correcto."},
+{s:"Hay una única disposición derogatoria.",v:true,e:"Correcto."},
+{s:"Hay una única disposición final.",v:true,e:"Correcto."},
+{s:"El orden de las disposiciones es: Adicionales, Transitorias, Derogatoria y Final.",v:true,e:"Correcto: ATDF."},
+{s:"La disposición derogatoria elimina automáticamente todas las normas anteriores a 1978.",v:false,e:"Falso: el esquema del tema indica que deroga las normas anteriores contrarias a la Constitución."},
+{s:"La mnemotecnia 4-9-1-1 ayuda a recordar las disposiciones.",v:true,e:"Correcto: 4 adicionales, 9 transitorias, 1 derogatoria y 1 final."}
+];
+
+let deck=[],i=0,ok=0,wrong=0,locked=false;
+function shuffle(a){for(let j=a.length-1;j>0;j--){const k=Math.floor(Math.random()*(j+1));[a[j],a[k]]=[a[k],a[j]]}return a}
+function start(){
+ deck=shuffle(items.map(x=>({...x})));i=0;ok=0;wrong=0;locked=false;
+ document.getElementById('start').classList.add('hidden');
+ document.getElementById('end').classList.add('hidden');
+ document.getElementById('game').classList.remove('hidden');
+ render();
+}
+function render(){
+ locked=false;
+ document.getElementById('progress').textContent=`${i+1} / ${deck.length}`;
+ document.getElementById('score').textContent=`Aciertos: ${ok}`;
+ document.getElementById('bar').style.width=`${(i/deck.length)*100}%`;
+ document.getElementById('statement').textContent=deck[i].s;
+ document.getElementById('feedback').className='feedback hidden';
+ document.getElementById('feedback').textContent='';
+ document.getElementById('choices').classList.remove('hidden');
+ document.getElementById('nextBtn').classList.add('hidden');
+}
+function answer(value){
+ if(locked)return;locked=true;
+ const good=value===deck[i].v;
+ if(good)ok++;else wrong++;
+ const fb=document.getElementById('feedback');
+ fb.className='feedback '+(good?'ok':'bad');
+ fb.innerHTML='<strong>'+(good?'✅ Detectado correctamente':'⚠️ Cuidado con la trampa')+'</strong>'+deck[i].e;
+ document.getElementById('choices').classList.add('hidden');
+ document.getElementById('nextBtn').classList.remove('hidden');
+}
+function next(){
+ i++;
+ if(i<deck.length)render();else finish();
+}
+function finish(){
+ document.getElementById('game').classList.add('hidden');
+ document.getElementById('end').classList.remove('hidden');
+ const p=Math.round(ok/deck.length*100);
+ document.getElementById('percent').textContent=p;
+ document.getElementById('okN').textContent=ok;
+ document.getElementById('badN').textContent=wrong;
+ localStorage.setItem('oporadar_detector_t1_last',JSON.stringify({date:new Date().toISOString(),percent:p,ok,wrong}));
+}
+</script>
+</body>
+</html>
