@@ -18,7 +18,6 @@ button{width:100%;border:0;border-radius:13px;padding:14px 16px;font-size:16px;f
 .result{font-size:46px;font-weight:950;color:var(--azul);margin:14px 0}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}.stat{background:#f5f7fa;padding:12px 8px;border-radius:12px}.stat b{display:block;font-size:20px}
 .actions{display:grid;gap:9px}.secondary{background:#eef2f7;color:#243047}
 .small{font-size:12px;color:#7b8794;margin-top:16px}
-.modes{display:grid;gap:9px}.mode{text-align:left;background:#edf6fc;color:#0d2a47}.mode b{display:block;color:var(--azul);font-size:20px}
 </style>
 </head>
 <body>
@@ -26,14 +25,10 @@ button{width:100%;border:0;border-radius:13px;padding:14px 16px;font-size:16px;f
 <div class="brand">OPORADARCÁDIZ · TARJETAS RADAR</div>
 
 <section id="start">
-  <span class="level">NIVEL 2 · DETALLADO</span>
-  <h1>¿Cuánto quieres rastrear hoy?</h1>
-  <p class="sub">El Radar tendrá en cuenta tus fallos y dudas anteriores para ayudarte a repasar lo que más necesitas.</p>
-  <div class="modes">
-    <button class="mode" onclick="start(20)"><b>20 tarjetas</b>⚡ Repaso rápido</button>
-    <button class="mode" onclick="start(30)"><b>30 tarjetas</b>🎯 Entrenamiento</button>
-    <button class="mode" onclick="start(40)"><b>40 tarjetas</b>📚 Repaso completo</button>
-  </div>
+  <span class="level">NIVEL 1 · TOMA DE CONTACTO</span>
+  <h1>Tema 1 · Constitución Española</h1>
+  <p class="sub">20 tarjetas de recuerdo activo. Piensa primero, destapa después y marca cómo te ha ido.</p>
+  <button class="primary" onclick="start(false)">📡 Activar Radar</button>
   <p class="small">Tu progreso se guarda en este dispositivo.</p>
 </section>
 
@@ -67,65 +62,41 @@ button{width:100%;border:0;border-radius:13px;padding:14px 16px;font-size:16px;f
     <div class="stat"><b id="badN">0</b>Fallos</div>
   </div>
   <div class="actions">
-    <button class="primary" id="reviewBtn" onclick="startReview()">🔁 Volver a rastrear fallos</button>
-    <button class="secondary" onclick="home()">📡 Nuevo rastreo</button>
+    <button class="primary" onclick="start(false)">🔄 Repetir todas</button>
+    <button class="secondary" id="reviewBtn" onclick="start(true)">🎯 Repasar dudas y fallos</button>
   </div>
 </section>
 </div>
 <script>
 const cards=[
-['fechas_cortes','¿Qué ocurrió el 31 de octubre de 1978?','Las Cortes Generales aprobaron la Constitución.','Cortes → aprueban.'],
-['fechas_pueblo','¿Qué ocurrió el 6 de diciembre de 1978?','El pueblo español ratificó la Constitución en referéndum.','Pueblo → ratifica.'],
-['fechas_rey','¿Qué ocurrió el 27 de diciembre de 1978?','El Rey sancionó y promulgó la Constitución.','Rey → sanciona y promulga.'],
-['fechas_boe','¿Qué ocurrió el 29 de diciembre de 1978?','Se publicó en el BOE y entró en vigor.','BOE → publica.'],
-['boe','¿Qué significa BOE?','Boletín Oficial del Estado.',''],
-['referendum','¿Qué es un referéndum?','Una votación directa de la ciudadanía sobre una cuestión determinada.',''],
-['ratificar','¿Qué significa ratificar?','Confirmar formalmente algo que ya ha sido aprobado.',''],
-['promulgar','¿Qué significa promulgar una ley?','Proclamarla oficialmente para que sea reconocida y cumplida.',''],
-['vigor','¿Qué significa entrar en vigor?','Empezar a producir efectos jurídicos.',''],
-['art1_estado','¿Cómo define España el artículo 1.1?','Como un Estado social y democrático de Derecho.',''],
-['art1_valores','¿Cuáles son los valores superiores del artículo 1.1?','Libertad, justicia, igualdad y pluralismo político.',''],
-['art1_soberania','¿Dónde reside la soberanía nacional?','En el pueblo español.',''],
-['art1_forma','¿Cuál es la forma política del Estado español?','La Monarquía parlamentaria.',''],
-['art2','¿Qué tres ideas reúne el artículo 2?','Unidad de España, autonomía de nacionalidades y regiones y solidaridad.',''],
-['art3','¿Qué establece el artículo 3 sobre el castellano?','Es la lengua española oficial del Estado: deber de conocerla y derecho a usarla.',''],
-['art4','¿Qué regula el artículo 4?','La bandera de España y las banderas de las comunidades autónomas.',''],
-['art5','¿Cuál es la capital del Estado?','La villa de Madrid.','Artículo 5.'],
-['art6','¿Qué regula el artículo 6?','Los partidos políticos.',''],
-['art7','¿Qué regula el artículo 7?','Los sindicatos de trabajadores y las asociaciones empresariales.',''],
-['art8','¿Qué regula el artículo 8?','Las Fuerzas Armadas y sus misiones constitucionales.',''],
-['art9_1','¿A qué están sujetos ciudadanía y poderes públicos según el artículo 9.1?','A la Constitución y al resto del ordenamiento jurídico.',''],
-['art9_3','Nombra garantías del artículo 9.3.','Legalidad, jerarquía normativa, publicidad, irretroactividad delimitada, seguridad jurídica, responsabilidad e interdicción de la arbitrariedad.',''],
-['titulo1','¿Qué comprende el Título I?','Artículos 10 a 55: derechos y deberes fundamentales.',''],
-['titulo2','¿Qué comprende el Título II?','Artículos 56 a 65: la Corona.',''],
-['titulo3','¿Qué comprende el Título III?','Artículos 66 a 96: las Cortes Generales.',''],
-['titulo4','¿Qué comprende el Título IV?','Artículos 97 a 107: el Gobierno y la Administración.',''],
-['titulo5','¿Qué comprende el Título V?','Artículos 108 a 116: relaciones entre el Gobierno y las Cortes Generales.',''],
-['titulo6','¿Qué comprende el Título VI?','Artículos 117 a 127: el Poder Judicial.',''],
-['titulo7','¿Qué comprende el Título VII?','Artículos 128 a 136: Economía y Hacienda.',''],
-['titulo8','¿Qué comprende el Título VIII?','Artículos 137 a 158: organización territorial del Estado.',''],
-['titulo9','¿Qué comprende el Título IX?','Artículos 159 a 165: Tribunal Constitucional.',''],
-['titulo10','¿Qué comprende el Título X?','Artículos 166 a 169: reforma constitucional.',''],
-['cortes','¿Cómo se componen las Cortes Generales?','Congreso de los Diputados y Senado.',''],
-['gobierno','¿Qué funciones constitucionales ejerce el Gobierno?','La función ejecutiva y la potestad reglamentaria, además de dirigir la política y la Administración.',''],
-['justicia','¿De quién emana la justicia?','Del pueblo y se administra en nombre del Rey.',''],
-['tc_fuera','¿Forma el Tribunal Constitucional parte del Poder Judicial?','No. Es independiente de los demás órganos constitucionales.',''],
-['tc_miembros','¿Cuántos miembros tiene el Tribunal Constitucional?','Doce miembros nombrados por el Rey.',''],
-['territorio','¿Qué entidades territoriales cita el artículo 137?','Municipios, provincias y comunidades autónomas.',''],
-['municipio','¿Qué garantiza el artículo 140?','La autonomía de los municipios y su personalidad jurídica plena.',''],
-['disposiciones','¿Cuál es el PIN de las disposiciones?','4 adicionales, 9 transitorias, 1 derogatoria y 1 final.','A-T-D-F.']
-].map(([id,q,a,t])=>({id,q,a,t}));
+{q:"¿Cuántos artículos tiene en total la Constitución Española?",a:"169 artículos.",t:"Dato clave de estructura."},
+{q:"¿En qué fecha fue ratificada la Constitución en referéndum?",a:"6 de diciembre de 1978.",t:"No confundas ratificación con otras fechas del proceso."},
+{q:"¿El Preámbulo tiene valor normativo directo?",a:"No. Funciona como presentación y declaración de intenciones.",t:"En este nivel: Preámbulo ≠ articulado."},
+{q:"¿Qué artículos forman el Título Preliminar?",a:"Del artículo 1 al 9.",t:"Son los cimientos del texto."},
+{q:"¿Qué recoge, a grandes rasgos, el Título Preliminar?",a:"Elementos básicos del Estado.",t:"Bandera, idioma, capital y principios básicos."},
+{q:"¿De qué trata el Título I?",a:"Derechos y deberes.",t:"I = derechos y deberes."},
+{q:"¿De qué trata el Título II?",a:"La Corona.",t:"II = Corona."},
+{q:"¿Qué regula el Título III?",a:"Las Cortes Generales.",t:"Congreso y Senado."},
+{q:"¿De qué trata el Título IV?",a:"El Gobierno.",t:"Presidente y Ministros."},
+{q:"¿Qué regula el Título V?",a:"Las relaciones entre el Gobierno y las Cortes Generales.",t:"V conecta Gobierno ↔ Cortes."},
+{q:"¿Qué regula el Título VI?",a:"El Poder Judicial.",t:"VI = Poder Judicial."},
+{q:"¿De qué trata el Título VII?",a:"Economía y Hacienda.",t:"VII = Economía y Hacienda."},
+{q:"¿En qué Título se regula la organización territorial?",a:"En el Título VIII.",t:"VIII = Organización Territorial."},
+{q:"¿Qué órgano aparece en el Título IX?",a:"El Tribunal Constitucional.",t:"IX = Tribunal Constitucional."},
+{q:"¿De qué trata el Título X?",a:"De la reforma de la Constitución.",t:"X cierra los Títulos."},
+{q:"¿Cuál es el orden real de las disposiciones?",a:"Adicionales, Transitorias, Derogatoria y Final.",t:"ATDF."},
+{q:"¿Cuántas disposiciones adicionales hay?",a:"4.",t:"Mnemotecnia del tema: 4-9-1-1."},
+{q:"¿Cuántas disposiciones transitorias hay?",a:"9.",t:"Mnemotecnia del tema: 4-9-1-1."},
+{q:"¿Cuántas disposiciones derogatorias y finales hay?",a:"1 derogatoria y 1 final.",t:"Completa 4-9-1-1."},
+{q:"¿Qué hace la disposición derogatoria según el esquema del tema?",a:"Deroga las normas anteriores que sean contrarias a la Constitución.",t:"No significa que desaparezca automáticamente toda norma anterior."}
+];
 
 let deck=[],i=0,stats={acierto:0,duda:0,fallo:0},reviewPool=[];
-const statsKey='oporadar_tema1_nivel2_card_stats';
 
 function shuffle(a){for(let j=a.length-1;j>0;j--){const k=Math.floor(Math.random()*(j+1));[a[j],a[k]]=[a[k],a[j]]}return a}
-function getCardStats(){try{return JSON.parse(localStorage.getItem(statsKey)||'{}')}catch{return {}}}
-function weight(card){const d=getCardStats()[card.id];if(!d)return 4;let w=Math.max(1+d.fallo*4+d.duda*2-d.acierto*.5,.8);const days=(Date.now()-d.lastSeen)/86400000;if(days>7)w+=2;if(days>14)w+=2;return w}
-function adaptive(amount){if(amount>=cards.length)return shuffle([...cards]);const available=[...cards],chosen=[];while(chosen.length<amount&&available.length){const ws=available.map(weight),total=ws.reduce((a,b)=>a+b,0);let r=Math.random()*total,index=0;for(let n=0;n<available.length;n++){r-=ws[n];if(r<=0){index=n;break}}chosen.push(available.splice(index,1)[0])}return shuffle(chosen)}
-function saveResult(card,type){const all=getCardStats(),d=all[card.id]||{acierto:0,duda:0,fallo:0,lastSeen:0};d[type]++;d.lastSeen=Date.now();all[card.id]=d;try{localStorage.setItem(statsKey,JSON.stringify(all))}catch{}}
-function start(amount){
-  deck=adaptive(amount);
+function start(onlyReview){
+  const saved=JSON.parse(localStorage.getItem('oporadar_t1_review')||'[]');
+  deck=shuffle((onlyReview && saved.length?saved:cards).map(x=>({...x})));
   i=0;stats={acierto:0,duda:0,fallo:0};reviewPool=[];
   document.getElementById('start').classList.add('hidden');
   document.getElementById('end').classList.add('hidden');
@@ -151,7 +122,6 @@ function showAnswer(){
 }
 function next(type){
   stats[type]++;
-  saveResult(deck[i],type);
   if(type!=='acierto') reviewPool.push(deck[i]);
   i++;
   if(i<deck.length) render(); else finish();
@@ -164,11 +134,10 @@ function finish(){
   document.getElementById('okN').textContent=stats.acierto;
   document.getElementById('doubtN').textContent=stats.duda;
   document.getElementById('badN').textContent=stats.fallo;
-  try{localStorage.setItem('oporadar_t1_review',JSON.stringify(reviewPool));localStorage.setItem('oporadar_t1_last',JSON.stringify({date:new Date().toISOString(),mastery,stats}))}catch{}
+  localStorage.setItem('oporadar_t1_review',JSON.stringify(reviewPool));
+  localStorage.setItem('oporadar_t1_last',JSON.stringify({date:new Date().toISOString(),mastery,stats}));
   document.getElementById('reviewBtn').disabled=reviewPool.length===0;
 }
-function startReview(){if(!reviewPool.length)return;deck=shuffle([...reviewPool]);i=0;stats={acierto:0,duda:0,fallo:0};reviewPool=[];document.getElementById('end').classList.add('hidden');document.getElementById('game').classList.remove('hidden');render()}
-function home(){document.getElementById('end').classList.add('hidden');document.getElementById('start').classList.remove('hidden')}
 </script>
 </body>
 </html>
