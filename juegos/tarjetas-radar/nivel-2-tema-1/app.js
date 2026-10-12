@@ -3,6 +3,9 @@ const $=id=>document.getElementById(id);
 let storage;
 try{storage=window.localStorage;}catch{storage={getItem(){throw Error('Bloqueado');},setItem(){throw Error('Bloqueado');},removeItem(){}};}
 const engine=RadarCore.create(RadarCards,storage);
+const shared=typeof RadarProgress==='object'?RadarProgress.create(storage):null;
+const legacyRate=engine.rate;
+engine.rate=function(outcome){const before=engine.state();const accepted=legacyRate(outcome);if(accepted&&shared&&before.card)shared.mark('t1/'+before.card.id,outcome,'tarjetas');return accepted;};
 function render(focus=false){
  const s=engine.state();['home','game','result'].forEach(id=>$(id).hidden=id!==s.phase);
  $('storageNotice').textContent=s.writable?'Tu progreso se guarda automáticamente.':'Este navegador no permite guardar el progreso. Puedes jugar, pero al cerrar o recargar perderás esta sesión.';

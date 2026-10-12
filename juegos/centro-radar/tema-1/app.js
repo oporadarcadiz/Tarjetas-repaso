@@ -1,0 +1,35 @@
+'use strict';
+const $=id=>document.getElementById(id),names={1:'Preliminar + I–III',2:'IV–VI',3:'VII–IX',4:'X + disposiciones'};
+let storage;try{storage=localStorage;}catch{storage={getItem(){throw Error('Bloqueado')},setItem(){throw Error('Bloqueado')}}}
+const progress=RadarProgress.create(storage);let mode,round=[],index=0,marks=[],rated=false,timer,deadline=0,advance=1;
+function notice(){$('notice').textContent=progress.writable()?'Tus fallos y dudas alimentan todos los modos.':'No se permite guardar el progreso en este navegador.';}
+function screen(name){for(const id of ['home','game','result'])$(id).hidden=id!==name;$('homeButton').hidden=name==='home';}
+function pool(){return RadarProgress.scope(RadarBank.mode(mode),+$('checkpoint').value,$('scope').value==='new');}
+function button(text,fn){const b=document.createElement('button');b.textContent=text;b.addEventListener('click',fn);$('controls').append(b);return b;}
+function start(nextMode,review=false){clearInterval(timer);mode=nextMode;let list=pool();if(review)list=list.filter(x=>['fallo','duda'].includes(progress.get(x.conceptId)?.lastOutcome));round=RadarProgress.select(list,+$('count').value,progress);if(!round.length){$('notice').textContent='No hay material de este modo en esta zona'+(review?' con fallos pendientes.':'.');return;}index=0;marks=[];deadline=mode==='express'?Date.now()+60000:0;screen('game');render();if(deadline)timer=setInterval(()=>{if(Date.now()>=deadline)finish();else $('position').textContent='Radar Express · '+Math.ceil((deadline-Date.now())/1000)+' s';},250);}
+function rate(outcome,answer){if(rated)return;rated=true;const q=round[index];progress.mark(q.conceptId,outcome,mode);marks.push({id:q.id,outcome});$('feedback').textContent=(outcome==='fallo'?'Esta vez no. ':outcome==='duda'?'Marcado para repasar. ':'Señal localizada. ')+(answer||q.a);for(const b of $('controls').querySelectorAll('button,input'))b.disabled=true;$('next').hidden=false;notice();}
+function shuffled(a){return a.map(v=>({v,r:Math.random()})).sort((a,b)=>a.r-b.r).map(x=>x.v);}
+function render(){rated=false;advance=1;$('controls').className='';const q=round[index];$('position').textContent=(index+1)+' de '+round.length;$('kind').textContent=q.type==='official'?'REAL · '+q.source:q.type==='practice'?'PRACTICA · OPORADARCÁDIZ':q.type==='exam'?'TIPO EXAMEN · OPORADARCÁDIZ':'ENTRENAMIENTO OPORADAR';$('question').textContent=q.q;$('feedback').textContent='';$('controls').replaceChildren();$('next').hidden=true;$('image').hidden=mode!=='visual';if(mode==='visual'){$('image').src='assets/'+q.image;$('question').textContent='¿Qué debes recordar al ver esta imagen?';}
+ if(mode==='empareja'){renderPairs();return;}
+ if(mode==='tarjetas'){button('Ver respuesta',()=>{$('feedback').textContent=q.a;$('controls').replaceChildren();for(const [label,value] of [['Acerté','acierto'],['Dudé','duda'],['Fallé','fallo']])button(label,()=>rate(value));});}
+ else if(mode==='trampas'){const truth=Math.random()>=.5;$('question').textContent=truth?q.a:q.trap;button('Correcta',()=>rate(truth?'acierto':'fallo',q.a));button('Hay una trampa',()=>rate(truth?'fallo':'acierto',q.a));}
+ else if(mode==='completa'){$('question').textContent=q.blank[0];const input=document.createElement('input');input.setAttribute('aria-label','Completa la palabra que falta');input.autocomplete='off';$('controls').append(input);button('Comprobar',()=>{const norm=s=>s.trim().toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'');rate(norm(input.value)===norm(q.blank[1])?'acierto':'fallo',q.a)});button('Dudé',()=>rate('duda'));}
+ else{if(mode==='relacion')$('question').textContent='Relaciona: '+q.relation;if(mode==='empareja')$('question').textContent='Empareja: '+q.q;const distractors=shuffled(pool().filter(x=>x.id!==q.id&&x.a!==q.a).map(x=>x.a));const choices=Array.isArray(q.choices)?shuffled(q.choices):shuffled([q.a,...new Set(distractors.slice(0,mode==='visual'?2:3))]);for(const choice of choices)button(choice,()=>rate(choice===q.a?'acierto':'fallo'));button('Dudé',()=>rate('duda'));}
+ $('question').focus();}
+function finish(){clearInterval(timer);screen('result');const correct=marks.filter(x=>x.outcome==='acierto').length;$('score').textContent=correct+' señales localizadas de '+marks.length+' respondidas'+(mode==='express'?' en hasta 60 segundos.':'.');$('retry').disabled=!pool().some(x=>['fallo','duda'].includes(progress.get(x.conceptId)?.lastOutcome));}
+function renderPairs(){
+ const batch=round.slice(index,index+4),rights=shuffled(batch);advance=batch.length;let chosen=null;const completed=new Set(),failed=new Set();
+ $('question').textContent='Une cada señal con su respuesta. Pulsa una señal de la izquierda y su pareja de la derecha.';$('controls').className='pairs';
+ const left=document.createElement('div'),right=document.createElement('div');$('controls').append(left,right);
+ for(const q of batch){const b=document.createElement('button');b.textContent=q.q;b.dataset.pair=q.id;b.onclick=()=>{chosen=q;left.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));};left.append(b)}
+ for(const q of rights){const b=document.createElement('button');b.textContent=q.a;b.dataset.pair=q.id;b.onclick=()=>{
+  if(!chosen){$('feedback').textContent='Elige primero una señal de la izquierda.';return;}
+  if(chosen.id!==q.id){failed.add(chosen.id);$('feedback').textContent='Esa no es la pareja. Inténtalo de nuevo.';return;}
+  const outcome=failed.has(q.id)?'fallo':'acierto';progress.mark(q.conceptId,outcome,mode);marks.push({id:q.id,outcome});completed.add(q.id);b.disabled=true;left.querySelector('[data-pair="'+q.id+'"]').disabled=true;chosen=null;$('feedback').textContent=outcome==='fallo'?'Pareja encontrada. La guardamos para repasar.':'Pareja localizada.';notice();
+  if(completed.size===batch.length){rated=true;$('next').hidden=false;}
+ };right.append(b)}
+ $('question').focus();
+}
+$('next').onclick=()=>{index+=advance;index>=round.length?finish():render()};$('retry').onclick=()=>start(mode,true);$('homeButton').onclick=()=>{clearInterval(timer);screen('home')};
+function coverage(){const cp=+$('checkpoint').value;$('scopeLabel').hidden=cp===1;if(cp===1)$('scope').value='all';$('coverage').textContent='Lo nuevo: '+names[cp]+'. Acumulado: '+Object.keys(names).filter(n=>+n<=cp).map(n=>names[n]).join(' + ');}
+$('checkpoint').onchange=coverage;document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>start(b.dataset.mode));const requested=new URLSearchParams(location.search).get('radar');if(['1','2','3','4'].includes(requested))$('checkpoint').value=requested;coverage();notice();

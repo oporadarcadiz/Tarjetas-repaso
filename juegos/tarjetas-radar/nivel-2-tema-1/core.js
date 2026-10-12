@@ -5,7 +5,7 @@
  const count=x=>Number.isFinite(x)&&x>=0?Math.min(Math.floor(x),1000000):0;
  function shuffle(list,rng){const a=[...list];for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
  function priority(d,now){if(!d)return 4;let w=d.lastOutcome==='fallo'?18:d.lastOutcome==='duda'?10:d.lastOutcome==='acierto'?Math.max(.8,2-d.streak*.3):Math.min(18,1+d.fallo*4+d.duda*2-d.acierto*.5);const days=Math.max(0,(now-d.lastSeen)/86400000);if(days>7)w+=2;if(days>14)w+=2;return w;}
- function select(cards,n,history,now,rng=Math.random){const available=[...cards],out=[];n=Math.min(cards.length,Math.max(0,Math.floor(n)));while(out.length<n){const weights=available.map(c=>priority(history[c.id],now)),total=weights.reduce((a,b)=>a+b,0);let r=rng()*total,j=0;for(;j<weights.length-1;j++){r-=weights[j];if(r<0)break;}out.push(available.splice(j,1)[0]);}return shuffle(out,rng);}
+ function select(cards,n,history,now,rng=Math.random){const available=[...cards],out=[];let shared;try{if(globalThis.RadarProgress)shared=globalThis.RadarProgress.create(globalThis.localStorage);}catch{}n=Math.min(cards.length,Math.max(0,Math.floor(n)));while(out.length<n){const weights=available.map(c=>{const other=shared?.get('t1/'+c.id),old=history[c.id];return priority(other&&(!old||other.lastSeen>=old.lastSeen)?other:old,now)}),total=weights.reduce((a,b)=>a+b,0);let r=rng()*total,j=0;for(;j<weights.length-1;j++){r-=weights[j];if(r<0)break;}out.push(available.splice(j,1)[0]);}return shuffle(out,rng);}
  function create(cards,storage,now=Date.now,rng=Math.random){
   if(!cards.length||new Set(cards.map(c=>c.id)).size!==cards.length)throw Error('Mazo inválido');
   const byId=new Map(cards.map(c=>[c.id,c]));let writable=true;

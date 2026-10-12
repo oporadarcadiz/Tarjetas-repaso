@@ -28,7 +28,7 @@ main{max-width:640px;margin:auto;background:#fff;border-radius:20px;padding:28px
 <div class="actions"><button id="next" class="primary" hidden>Siguiente pregunta</button><button id="leave" class="secondary">Volver al inicio</button></div></section>
 <section id="result" hidden><span class="tag">REPASO TERMINADO</span><h1>Tu resultado</h1><div id="totalScore" class="score"></div><div class="results"><div><b id="correctN"></b>Aciertos</div><div><b id="wrongN"></b>Fallos</div><div><b id="questionN"></b>Preguntas</div></div><p id="resultNote" class="muted"></p><div class="actions"><button id="retry" class="primary">Repetir los fallos</button><button id="newRound" class="secondary">Nuevo repaso</button></div></section>
 <footer>Los fallos se guardan en este dispositivo. Al actualizar la página se vuelve a consultar el banco de preguntas.<p id="demoFooter" hidden>Modo de demostración. Esta muestra comprueba el juego y no es un examen oficial.</p></footer>
-</main><script src="core.js"></script><script>
+</main><script src="core.js"></script><script src="../../centro-radar/shared/progress.js"></script><script>
 'use strict';
 const SHEET_ID='1cxhXuTaRsF7O8BTHkl8Bz3WKODCKt8hjK7TaFV_oEJI';
 const SHEET_GID='472358706';
@@ -36,7 +36,7 @@ const STORE_KEY='oporadar-test-tema-1-v1';
 const $=id=>document.getElementById(id);
 let bank=[],round=[],index=0,answers=[],demoMode=false,loadNumber=0;
 function readHistory(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}')||{};}catch{return {};}}
-function record(question,correct){try{const h=readHistory();h[question.id]={wrong:!correct,at:Date.now()};localStorage.setItem(STORE_KEY,JSON.stringify(h));}catch{}}
+function record(question,correct){try{const h=readHistory();h[question.id]={wrong:!correct,at:Date.now()};localStorage.setItem(STORE_KEY,JSON.stringify(h));RadarProgress.create(localStorage).mark(question.conceptId,correct?'acierto':'fallo','test-sheet');}catch{}}
 function screen(id){['home','quiz','result'].forEach(s=>$(s).hidden=s!==id);}
 function googleTable(){return new Promise((resolve,reject)=>{
  const callback='oporadarSheet'+Date.now()+Math.floor(Math.random()*10000),script=document.createElement('script');
@@ -55,7 +55,7 @@ async function load(){const token=++loadNumber;bank=[];demoMode=false;$('demoFoo
  document.querySelectorAll('[data-count]').forEach(b=>b.disabled=!bank.length);
  }catch(e){if(token!==loadNumber)return;$('loading').textContent='El banco de preguntas aún no está conectado.';$('bankNote').textContent='Puedes probar una pregunta de demostración mientras se habilita la lectura de la hoja.';$('bankNote').hidden=false;$('demo').hidden=false;}
  finally{if(token===loadNumber)$('reload').disabled=false;}}
-function start(count,selected){round=selected||QuizCore.select(bank,count);if(!round.length)return;index=0;answers=[];screen('quiz');render();}
+function start(count,selected){let memory;try{memory=RadarProgress.create(localStorage);}catch{memory={priority:()=>4}}round=selected||RadarProgress.select(bank,count,memory);if(!round.length)return;index=0;answers=[];screen('quiz');render();}
 function render(){const q=round[index];$('position').textContent='Pregunta '+(index+1)+' de '+round.length;$('scoreLive').textContent=answers.filter(a=>a.correct).length+' aciertos';$('progress').style.width=(index/round.length*100)+'%';$('type').textContent=q.type==='OFICIAL'?'PREGUNTA OFICIAL':q.type==='DEMOSTRACION'?'PREGUNTA DE MUESTRA':'PREGUNTA DE REPASO';$('question').textContent=q.question;
  const options=$('choices');options.replaceChildren();const legend=document.createElement('legend');legend.className='small';legend.textContent='Selecciona una respuesta:';options.append(legend);
  q.choices.forEach((value,i)=>{const label=document.createElement('label');label.className='option';const radio=document.createElement('input');radio.type='radio';radio.name='answer';radio.value=i;radio.addEventListener('change',()=>$('submit').disabled=false);const span=document.createElement('span');span.textContent=String.fromCharCode(65+i)+'. '+value;label.append(radio,span);options.append(label);});

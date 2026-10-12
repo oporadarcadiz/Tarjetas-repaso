@@ -13,7 +13,7 @@
       const choices=['a','b','c','d'].map(l=>record['opcion_'+l]);
       if(!record.id||!record.pregunta||choices.some(c=>!c)||new Set(choices).size!==4||!/^[ABCD]$/.test(correct)||seen.has(record.id)){rejected++;continue;}
       seen.add(record.id);
-      bank.push({id:record.id,question:record.pregunta,choices,correct:correct.charCodeAt(0)-65,explanation:record.explicacion,type:record.tipo||'PROPIA',source:record.fuente||''});
+      bank.push({id:record.id,question:record.pregunta,choices,correct:correct.charCodeAt(0)-65,explanation:record.explicacion,type:record.tipo||'PROPIA',source:record.fuente||'',conceptId:record.concepto||'',checkpoint:Number(record.checkpoint),reviewed:['SI','SÍ','TRUE','1'].includes((record.revisada||'').toUpperCase()),organism:record.organismo||'',year:record.anio||record.año||''});
     }
     return {bank,rejected};
   }
