@@ -1,9 +1,10 @@
 'use strict';
 const $=id=>document.getElementById(id),names={1:'Preliminar + I–III',2:'IV–VI',3:'VII–IX',4:'X + disposiciones'};
 let storage;try{storage=localStorage;}catch{storage={getItem(){throw Error('Bloqueado')},setItem(){throw Error('Bloqueado')}}}
+const params=new URLSearchParams(location.search),directMode=params.get('modo');
 const progress=RadarProgress.create(storage);let mode,round=[],index=0,marks=[],rated=false,timer,deadline=0,advance=1;
 function notice(){$('notice').textContent=progress.writable()?'Tus fallos y dudas alimentan todos los modos.':'No se permite guardar el progreso en este navegador.';}
-function screen(name){for(const id of ['home','game','result'])$(id).hidden=id!==name;$('homeButton').hidden=name==='home';}
+function screen(name){for(const id of ['home','game','result'])$(id).hidden=id!==name;$('homeButton').hidden=name==='home'||Boolean(directMode);}
 function pool(){return RadarProgress.scope(RadarBank.mode(mode),+$('checkpoint').value,$('scope').value==='new');}
 function button(text,fn){const b=document.createElement('button');b.textContent=text;b.addEventListener('click',fn);$('controls').append(b);return b;}
 function start(nextMode,review=false){clearInterval(timer);mode=nextMode;let list=pool();if(review)list=list.filter(x=>['fallo','duda'].includes(progress.get(x.conceptId)?.lastOutcome));round=RadarProgress.select(list,+$('count').value,progress);if(!round.length){$('notice').textContent='No hay material de este modo en esta zona'+(review?' con fallos pendientes.':'.');return;}index=0;marks=[];deadline=mode==='express'?Date.now()+60000:0;screen('game');render();if(deadline)timer=setInterval(()=>{if(Date.now()>=deadline)finish();else $('position').textContent='Radar Express · '+Math.ceil((deadline-Date.now())/1000)+' s';},250);}
@@ -32,4 +33,4 @@ function renderPairs(){
 }
 $('next').onclick=()=>{index+=advance;index>=round.length?finish():render()};$('retry').onclick=()=>start(mode,true);$('homeButton').onclick=()=>{clearInterval(timer);screen('home')};
 function coverage(){const cp=+$('checkpoint').value;$('scopeLabel').hidden=cp===1;if(cp===1)$('scope').value='all';$('coverage').textContent='Lo nuevo: '+names[cp]+'. Acumulado: '+Object.keys(names).filter(n=>+n<=cp).map(n=>names[n]).join(' + ');}
-$('checkpoint').onchange=coverage;document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>start(b.dataset.mode));const params=new URLSearchParams(location.search),requested=params.get('radar'),requestedMode=params.get('modo');if(['1','2','3','4'].includes(requested))$('checkpoint').value=requested;coverage();notice();if(['tarjetas','trampas','completa','visual','mixto'].includes(requestedMode))start(requestedMode);
+$('checkpoint').onchange=coverage;document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>start(b.dataset.mode));const requested=params.get('radar');if(['1','2','3','4'].includes(requested))$('checkpoint').value=requested;coverage();notice();if(['tarjetas','trampas','completa','visual','mixto'].includes(directMode))start(directMode);
