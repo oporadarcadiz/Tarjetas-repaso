@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id),names={1:'Preliminar + I–III',2:'IV–
 let storage;try{storage=localStorage;}catch{storage={getItem(){throw Error('Bloqueado')},setItem(){throw Error('Bloqueado')}}}
 const params=new URLSearchParams(location.search),directMode=params.get('modo');
 const progress=RadarProgress.create(storage);let mode,round=[],index=0,marks=[],rated=false,timer,deadline=0,advance=1;
-function notice(){$('notice').textContent=progress.writable()?'Tus fallos y dudas alimentan todos los modos.':'No se permite guardar el progreso en este navegador.';}
+function notice(){$('notice').textContent='Al final de la ronda repetirás las dudas y los fallos.';}
 function screen(name){for(const id of ['home','game','result'])$(id).hidden=id!==name;$('homeButton').hidden=name==='home'||Boolean(directMode);}
 function pool(){return RadarProgress.scope(RadarBank.mode(mode),+$('checkpoint').value,$('scope').value==='new');}
 function button(text,fn){const b=document.createElement('button');b.textContent=text;b.addEventListener('click',fn);$('controls').append(b);return b;}
