@@ -1,7 +1,7 @@
 'use strict';
 const $=id=>document.getElementById(id),names={1:'Preliminar + I–III',2:'IV–VI',3:'VII–IX',4:'X + disposiciones'};
 let storage;try{storage=localStorage;}catch{storage={getItem(){throw Error('Bloqueado')},setItem(){throw Error('Bloqueado')}}}
-const params=new URLSearchParams(location.search),directMode=params.get('modo');
+const params=new URLSearchParams(location.search),directMode=params.get('modo'),titles={tarjetas:'Tarjetas Radar',trampas:'Caza la trampa',completa:'Completa la norma',visual:'Mapa constitucional',mixto:'Test Tema 1',real:'Preguntas reales'};
 const progress=RadarProgress.create(storage);let mode,round=[],index=0,marks=[],rated=false,timer,deadline=0,advance=1;
 function notice(){$('notice').textContent='Al final de la ronda repetirás las dudas y los fallos.';}
 function screen(name){for(const id of ['home','game','result'])$(id).hidden=id!==name;$('homeButton').hidden=name==='home'||Boolean(directMode);}
@@ -33,4 +33,4 @@ function renderPairs(){
 }
 $('next').onclick=()=>{index+=advance;index>=round.length?finish():render()};$('homeButton').onclick=()=>{clearInterval(timer);screen('home')};
 function coverage(){const cp=+$('checkpoint').value;$('scopeLabel').hidden=cp===1;if(cp===1)$('scope').value='all';$('coverage').textContent='Lo nuevo: '+names[cp]+'. Acumulado: '+Object.keys(names).filter(n=>+n<=cp).map(n=>names[n]).join(' + ');}
-$('checkpoint').onchange=coverage;document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>start(b.dataset.mode));const requested=params.get('radar');if(['1','2','3','4'].includes(requested))$('checkpoint').value=requested;coverage();notice();if(['tarjetas','trampas','completa','visual','mixto'].includes(directMode))start(directMode);
+$('checkpoint').onchange=coverage;document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>start(b.dataset.mode));const requested=params.get('radar');if(['1','2','3','4'].includes(requested))$('checkpoint').value=requested;coverage();notice();if(['tarjetas','trampas','completa','visual','mixto','real'].includes(directMode)){const title=$('activityTitle');title.textContent=titles[directMode];title.hidden=false;document.querySelector('.modes').hidden=true;$('checkpoint').closest('label').hidden=true;$('scopeLabel').hidden=true;$('coverage').hidden=true;const startButton=$('startDirect');startButton.hidden=false;startButton.textContent='Empezar '+titles[directMode];startButton.onclick=()=>start(directMode);}
