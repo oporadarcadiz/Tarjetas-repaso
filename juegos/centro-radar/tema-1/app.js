@@ -17,7 +17,33 @@ function render(){rated=false;advance=1;$('controls').className='';const q=round
  else if(mode==='completa'){$('question').textContent=q.blank[0];const input=document.createElement('input');input.setAttribute('aria-label','Completa la palabra que falta');input.autocomplete='off';$('controls').append(input);button('Comprobar',()=>{const norm=s=>s.trim().toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'');rate(norm(input.value)===norm(q.blank[1])?'acierto':'fallo',q.a)});button('Dudé',()=>rate('duda'));}
  else{if(mode==='relacion')$('question').textContent='Relaciona: '+q.relation;if(mode==='empareja')$('question').textContent='Empareja: '+q.q;const distractors=shuffled(pool().filter(x=>x.id!==q.id&&x.a!==q.a).map(x=>x.a));const choices=Array.isArray(q.choices)?shuffled(q.choices):shuffled([q.a,...new Set(distractors.slice(0,mode==='visual'?2:3))]);for(const choice of choices)button(choice,()=>rate(choice===q.a?'acierto':'fallo'));button('Dudé',()=>rate('duda'));}
  $('question').focus();}
-function finish(){clearInterval(timer);screen('result');const correct=marks.filter(x=>x.outcome==='acierto').length,pending=marks.filter(x=>['fallo','duda'].includes(x.outcome)).map(x=>x.id);$('score').textContent=correct+' '+(correct===1?'acierto':'aciertos')+' de '+marks.length+' '+(marks.length===1?'pregunta.':'preguntas.');$('retry').disabled=!pending.length;$('retry').textContent=pending.length?'Repetir '+pending.length+' '+(pending.length===1?'pregunta pendiente':'dudas y fallos'):'Ronda terminada';$('retry').onclick=()=>start(mode,true,pending);}
+function finish(){
+ clearInterval(timer);screen('result');
+ const correct=marks.filter(x=>x.outcome==='acierto').length;
+ const pending=marks.filter(x=>['fallo','duda'].includes(x.outcome)).map(x=>x.id);
+ const unanswered=Math.max(0,round.length-marks.length);
+ $('score').textContent=correct+' aciertos · '+marks.filter(x=>x.outcome==='duda').length+' dudas · '+marks.filter(x=>x.outcome==='fallo').length+' fallos'+(unanswered?' · '+unanswered+' sin responder':'')+' · '+round.length+' preguntas.';
+ const groups=new Map();
+ for(const q of round){
+   const key=q.checkpoint||1,group=groups.get(key)||{total:0,ok:0,duda:0,fallo:0,blank:0};
+   group.total++;
+   const outcome=marks.find(m=>m.id===q.id)?.outcome;
+   if(outcome==='acierto')group.ok++;else if(outcome==='duda')group.duda++;else if(outcome==='fallo')group.fallo++;else group.blank++;
+   groups.set(key,group);
+ }
+ const root=$('diagnostic');root.replaceChildren();
+ for(const [key,g] of [...groups].sort((a,b)=>a[0]-b[0])){
+   const block=document.createElement('div');block.className='diagnostic-row';
+   const strong=document.createElement('strong');strong.textContent='Radar '+key+' · '+(names[key]||'Bloque')+' · '+g.ok+'/'+g.total+' aciertos';
+   const detail=document.createElement('span');detail.textContent=g.duda+' dudas · '+g.fallo+' fallos'+(g.blank?' · '+g.blank+' sin responder':'');
+   block.append(strong,detail);root.append(block);
+ }
+ const needs=[...groups].filter(([k,g])=>g.ok<g.total).sort((a,b)=>(a[1].ok/a[1].total)-(b[1].ok/b[1].total));
+ $('nextAdvice').textContent=needs.length?'Prioridad de repaso: Radar '+needs[0][0]+' ('+names[needs[0][0]]+'). Repite tus dudas y fallos antes de avanzar.':'¡Buen trabajo! Has acertado todas las preguntas respondidas.';
+ $('retry').disabled=!pending.length;
+ $('retry').textContent=pending.length?'Repetir '+pending.length+' '+(pending.length===1?'pregunta pendiente':'dudas y fallos'):'Ronda terminada';
+ $('retry').onclick=()=>start(mode,true,pending);
+}
 function renderPairs(){
  const batch=round.slice(index,index+4),rights=shuffled(batch);advance=batch.length;let chosen=null;const completed=new Set(),failed=new Set();
  $('question').textContent='Une cada señal con su respuesta. Pulsa una señal de la izquierda y su pareja de la derecha.';$('controls').className='pairs';
