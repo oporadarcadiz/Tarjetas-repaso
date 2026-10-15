@@ -19,6 +19,32 @@
   b26:{label:'Ayuntamiento de Barakaldo · 2026',note:'1 plaza de Subalterno/a, turno libre. Examen y corrector oficial, modelo A.'}
  };
  const sourceLinks={"c25":"https://institucional.cadiz.es/12-plazas-de-subalternoas-turno-libre-oep-202120222023","s22":"https://www.sanlucardebarrameda.es/sites/default/files/EXAMEN%20CONSERJE%20CORREGIDO.pdf","f26":"https://drive.google.com/file/d/1dRQZFyygairudmOMWgyZdkBXo6OFH42J/view","g26":"https://drive.google.com/file/d/1gAynR6rKMG_Xt3V9_GRvEo3mTEVlyyzf/view","b26":"https://drive.google.com/file/d/16HyR0bPsUi8PwtH_Cq7b3R5u8hkc8Opn/view"};
+ const legalExplanations={
+  art1_valores:'Art. 1.1 CE: libertad, justicia, igualdad y pluralismo político son los cuatro valores superiores expresamente mencionados.',
+  art1_soberania:'Art. 1.2 CE: la soberanía nacional reside en el pueblo español, del que emanan los poderes del Estado.',
+  art16:'Art. 16.2 CE: nadie puede ser obligado a declarar sobre su ideología, religión o creencias.',
+  art17:'Art. 17.2 CE: la detención preventiva no puede durar más de lo estrictamente necesario y, en todo caso, el máximo ordinario es de 72 horas.',
+  art21_reunion:'Art. 21.2 CE: las reuniones en tránsito público y manifestaciones requieren comunicación previa; solo pueden prohibirse por razones fundadas de alteración del orden público con peligro para personas o bienes.',
+  art137:'Art. 137 CE: el Estado se organiza territorialmente en municipios, provincias y comunidades autónomas que se constituyan.',
+  art140:'Art. 140 CE: la Constitución garantiza la autonomía municipal.',
+  art141:'Art. 141.1 CE: la provincia es una entidad local con personalidad jurídica propia.',
+  art134:'Art. 134.1 CE: el Gobierno elabora los Presupuestos Generales del Estado; las Cortes Generales los examinan, enmiendan y aprueban.',
+  presupuestos:'Art. 134.1 CE: corresponde al Gobierno elaborarlos y a las Cortes examinarlos, enmendarlos y aprobarlos.',
+  tc_miembros:'Art. 159.1 CE: el Tribunal Constitucional se compone de doce miembros.',
+  tc_renovacion:'Art. 159.3 CE: mandato de nueve años con renovación por terceras partes cada tres.',
+  reforma_167:'Art. 167.1 CE: la reforma ordinaria requiere, con carácter general, mayoría de tres quintos de cada Cámara.',
+  reforma_168:'Art. 168 CE: para revisión total o determinados bloques especialmente protegidos se exige el procedimiento agravado, incluida mayoría de dos tercios y disolución de las Cortes.',
+  reforma_167_referendum:'Art. 167.3 CE: se somete a referéndum si lo pide una décima parte de los miembros de cualquiera de las Cámaras en los quince días siguientes a su aprobación.',
+  titulo7:'Título VII CE: Economía y Hacienda, artículos 128 a 136.',
+  art29_peticion:'Art. 29.1 CE: se reconoce el derecho de petición individual y colectiva, por escrito, en la forma y con los efectos que determine la ley.',
+  art2:'Art. 2 CE: unidad de la Nación española y reconocimiento y garantía de la autonomía de nacionalidades y regiones.',
+  art5:'Art. 5 CE: la capital del Estado es la villa de Madrid.',
+  art12:'Art. 12 CE: la mayoría de edad se alcanza a los dieciocho años.',
+  titulo1:'El Título I CE se denomina «De los derechos y deberes fundamentales».',
+  titulo9:'El Título IX CE regula el Tribunal Constitucional.',
+  titulo10:'El Título X CE se denomina «De la reforma constitucional».',
+  estructura_articulos:'La Constitución tiene artículos numerados del 1 al 169.'
+ };
  const literalIds=new Set(['g26-01','c25-01','s22-08','s22-09','s22-13']);
  
  const official=[
@@ -52,7 +78,7 @@
   ['s22-11','art18_comunicaciones',1,'La Constitución garantiza el secreto de las comunicaciones salvo:',['Resolución administrativa.','Resolución judicial.','Resolución judicial y administrativa.','Caso de flagrante delito.'],1,'s22',245],
   ['s22-12','titulo9',3,'¿En qué título de la Constitución se regula el Tribunal Constitucional?',['Título X','Título XI','Título VIII','Título IX'],3,'s22',257],
   ['s22-13','titulo10',4,'¿Cómo se denomina el Título X de la Constitución Española?',['Del Tribunal Constitucional.','Del Tribunal de Cuentas.','De la reforma constitucional.','De la reforma de cuentas.'],2,'s22',261]
- ].map(([id,concept,checkpoint,q,choices,correct,origin,row])=>({id,conceptId:'t1/'+concept,checkpoint,q,choices,correct,a:choices[correct],theme:1,type:'official',source:source[origin].label,sourceUrl:sourceLinks[origin],adapted:!literalIds.has(id),t:source[origin].note+' Fila '+row+' del banco de preguntas.'+(!literalIds.has(id)?' Versión adaptada de una pregunta de examen; consultar fuente.':''),sourceRow:row,collection:'tema1-inicial'}));
+ ].map(([id,concept,checkpoint,q,choices,correct,origin,row])=>({id,conceptId:'t1/'+concept,checkpoint,q,choices,correct,a:choices[correct],theme:1,type:'official',source:source[origin].label,sourceUrl:sourceLinks[origin],adapted:!literalIds.has(id),t:source[origin].note+' Fila '+row+' del banco de preguntas.'+(!literalIds.has(id)?' Versión adaptada de una pregunta de examen; consultar fuente.':''),sourceRow:row,explanation:legalExplanations[concept]||'',explanation:legalExplanations[concept]||'',collection:'tema1-inicial'}));
  const created=[
   ['op-01','preambulo',1,'¿Qué función tiene el Preámbulo de la Constitución?',['Expresa las intenciones y fines que inspiran la Constitución.','Tiene el mismo valor que un artículo.','Regula la reforma constitucional.','Contiene las disposiciones transitorias.'],0,'practice'],
   ['op-02','fecha_31o',1,'El 31 de octubre de 1978 la Constitución fue:',['Aprobada por las Cortes.','Ratificada en referéndum.','Sancionada por el Rey.','Publicada en el BOE.'],0,'practice'],
