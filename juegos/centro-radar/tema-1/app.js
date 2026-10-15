@@ -20,7 +20,7 @@ function render(){rated=false;advance=1;$('controls').className='';const q=round
 function finish(){
  clearInterval(timer);screen('result');
  const correct=marks.filter(x=>x.outcome==='acierto').length;
- const pending=marks.filter(x=>['fallo','duda'].includes(x.outcome)).map(x=>x.id);
+ const answeredCorrect=new Set(marks.filter(x=>x.outcome==='acierto').map(x=>x.id));const pending=round.filter(q=>!answeredCorrect.has(q.id)).map(q=>q.id);
  const unanswered=Math.max(0,round.length-marks.length);
  $('score').textContent=correct+' aciertos · '+marks.filter(x=>x.outcome==='duda').length+' dudas · '+marks.filter(x=>x.outcome==='fallo').length+' fallos'+(unanswered?' · '+unanswered+' sin responder':'')+' · '+round.length+' preguntas.';
  const groups=new Map();
