@@ -18,7 +18,7 @@
   g26:{label:'Cabildo de Gran Canaria · 2026',note:'5 plazas de Subalterno. Plantilla correctora oficial firmada el 19/08/2026.'},
   b26:{label:'Ayuntamiento de Barakaldo · 2026',note:'1 plaza de Subalterno/a, turno libre. Examen y corrector oficial, modelo A.'}
  };
- const sourceLinks={"c25":"https://institucional.cadiz.es/tablon-de-anuncios/Empleo%20P%C3%BAblico%20(finalizados%202019)","s22":"https://www.sanlucardebarrameda.es/sites/default/files/EXAMEN%20CONSERJE%20CORREGIDO.pdf","f26":"https://drive.google.com/file/d/1dRQZFyygairudmOMWgyZdkBXo6OFH42J/view","g26":"https://drive.google.com/file/d/1gAynR6rKMG_Xt3V9_GRvEo3mTEVlyyzf/view","b26":"https://drive.google.com/file/d/16HyR0bPsUi8PwtH_Cq7b3R5u8hkc8Opn/view"};
+ const sourceLinks={"c25":"https://institucional.cadiz.es/12-plazas-de-subalternoas-turno-libre-oep-202120222023","s22":"https://www.sanlucardebarrameda.es/sites/default/files/EXAMEN%20CONSERJE%20CORREGIDO.pdf","f26":"https://drive.google.com/file/d/1dRQZFyygairudmOMWgyZdkBXo6OFH42J/view","g26":"https://drive.google.com/file/d/1gAynR6rKMG_Xt3V9_GRvEo3mTEVlyyzf/view","b26":"https://drive.google.com/file/d/16HyR0bPsUi8PwtH_Cq7b3R5u8hkc8Opn/view"};
  const literalIds=new Set(['g26-01','c25-01','s22-08','s22-09','s22-13']);
  
  const official=[
