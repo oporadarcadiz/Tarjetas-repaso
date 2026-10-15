@@ -18,6 +18,9 @@
   g26:{label:'Cabildo de Gran Canaria · 2026',note:'5 plazas de Subalterno. Plantilla correctora oficial firmada el 19/08/2026.'},
   b26:{label:'Ayuntamiento de Barakaldo · 2026',note:'1 plaza de Subalterno/a, turno libre. Examen y corrector oficial, modelo A.'}
  };
+ const sourceLinks={"c25":"https://institucional.cadiz.es/tablon-de-anuncios/Empleo%20P%C3%BAblico%20(finalizados%202019)","s22":"https://www.sanlucardebarrameda.es/sites/default/files/EXAMEN%20CONSERJE%20CORREGIDO.pdf","f26":"https://drive.google.com/file/d/1dRQZFyygairudmOMWgyZdkBXo6OFH42J/view","g26":"https://drive.google.com/file/d/1gAynR6rKMG_Xt3V9_GRvEo3mTEVlyyzf/view","b26":"https://drive.google.com/file/d/16HyR0bPsUi8PwtH_Cq7b3R5u8hkc8Opn/view"};
+ const literalIds=new Set(['g26-01','c25-01','s22-08','s22-09','s22-13']);
+ 
  const official=[
   ['f26-01','art16',1,'El artículo 16 de la Constitución Española establece que:',['Nadie podrá ser obligado a declarar sobre su ideología, religión o creencias.','Nadie podrá ser obligado a declarar sobre religión, pero sí sobre sus creencias.','Las dos afirmaciones anteriores son incorrectas.'],0,'f26',392],
   ['f26-02','art137',3,'Según el artículo 137 de la Constitución Española, ¿en qué entidades se organiza territorialmente el Estado?',['En municipios, provincias y en las comunidades autónomas que se constituyan.','En comarcas, provincias y comunidades autónomas.','En comunidades autónomas, provincias y distritos.'],0,'f26',393],
@@ -49,7 +52,7 @@
   ['s22-11','art18_comunicaciones',1,'La Constitución garantiza el secreto de las comunicaciones salvo:',['Resolución administrativa.','Resolución judicial.','Resolución judicial y administrativa.','Caso de flagrante delito.'],1,'s22',245],
   ['s22-12','titulo9',3,'¿En qué título de la Constitución se regula el Tribunal Constitucional?',['Título X','Título XI','Título VIII','Título IX'],3,'s22',257],
   ['s22-13','titulo10',4,'¿Cómo se denomina el Título X de la Constitución Española?',['Del Tribunal Constitucional.','Del Tribunal de Cuentas.','De la reforma constitucional.','De la reforma de cuentas.'],2,'s22',261]
- ].map(([id,concept,checkpoint,q,choices,correct,origin,row])=>({id,conceptId:'t1/'+concept,checkpoint,q,choices,correct,a:choices[correct],theme:1,type:'official',source:source[origin].label,t:source[origin].note+' Fila '+row+' del banco de preguntas.',sourceRow:row,collection:'tema1-inicial'}));
+ ].map(([id,concept,checkpoint,q,choices,correct,origin,row])=>({id,conceptId:'t1/'+concept,checkpoint,q,choices,correct,a:choices[correct],theme:1,type:'official',source:source[origin].label,sourceUrl:sourceLinks[origin],adapted:!literalIds.has(id),t:source[origin].note+' Fila '+row+' del banco de preguntas.'+(!literalIds.has(id)?' Versión adaptada de una pregunta de examen; consultar fuente.':''),sourceRow:row,collection:'tema1-inicial'}));
  const created=[
   ['op-01','preambulo',1,'¿Qué función tiene el Preámbulo de la Constitución?',['Expresa las intenciones y fines que inspiran la Constitución.','Tiene el mismo valor que un artículo.','Regula la reforma constitucional.','Contiene las disposiciones transitorias.'],0,'practice'],
   ['op-02','fecha_31o',1,'El 31 de octubre de 1978 la Constitución fue:',['Aprobada por las Cortes.','Ratificada en referéndum.','Sancionada por el Rey.','Publicada en el BOE.'],0,'practice'],
