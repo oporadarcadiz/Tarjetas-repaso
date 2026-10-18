@@ -1,7 +1,7 @@
 'use strict';
 const $=id=>document.getElementById(id),names={1:'Preliminar + I–III',2:'IV–VI',3:'VII–IX',4:'X + disposiciones'};
 let storage;try{storage=localStorage;}catch{storage={getItem(){throw Error('Bloqueado')},setItem(){throw Error('Bloqueado')}}}
-const params=new URLSearchParams(location.search),directMode=params.get('modo'),titles={tarjetas:'Tarjetas Radar',trampas:'Caza la trampa',completa:'Completa la norma',visual:'Mapa constitucional',mixto:'Test Tema 1',real:'Preguntas reales'};
+const params=new URLSearchParams(location.search),directMode=params.get('modo'),titles={tarjetas:'Tarjetas Radar',trampas:'Caza la trampa',completa:'Completa la frase',visual:'Mapa constitucional',mixto:'Test Tema 1',real:'Preguntas reales'};
 const backToMenu=$('backToMenu');
 try{const from=new URL(document.referrer);if(/\/tema-1\/juegos\/menu-memoria\//.test(from.pathname)){backToMenu.href=from.href;backToMenu.hidden=false;}}catch(_){}
 const progress=RadarProgress.create(storage);let mode,round=[],index=0,marks=[],rated=false,timer,deadline=0,advance=1;
