@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id),names={1:'Preliminar + I–III',2:'IV–
 let storage;try{storage=localStorage;}catch{storage={getItem(){throw Error('Bloqueado')},setItem(){throw Error('Bloqueado')}}}
 const params=new URLSearchParams(location.search),directMode=params.get('modo'),titles={tarjetas:'Tarjetas Radar',trampas:'Caza la trampa',completa:'Completa la frase',visual:'Mapa constitucional',mixto:'Test Tema 1',real:'Preguntas reales'};
 const backToMenu=$('backToMenu');
-try{const from=new URL(document.referrer);if(/\/tema-1\/juegos\/menu-memoria\//.test(from.pathname)){backToMenu.href=from.href;backToMenu.hidden=false;}}catch(_){}
+try{const from=new URL(params.get('volver')||document.referrer);if(from.protocol==='https:'&&/^\/tema-1\/juegos\/menu-memoria\/(?:index\.html|vocabulario-juridico\.html)?$/.test(from.pathname)){backToMenu.href=from.href;backToMenu.hidden=false;}}catch(_){}
 const progress=RadarProgress.create(storage);let mode,round=[],index=0,marks=[],rated=false,timer,deadline=0,advance=1;
 function notice(){$('notice').textContent='Al terminar podrás repetir las dudas, los fallos y las preguntas sin responder.';}
 function screen(name){for(const id of ['home','game','result'])$(id).hidden=id!==name;$('homeButton').hidden=name==='home'||Boolean(directMode);document.body.classList.toggle('playing',name==='game');}
