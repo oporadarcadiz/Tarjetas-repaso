@@ -22,7 +22,7 @@ function pool(){// En este modo demostración se combinan ejercicios propios y p
 //  source, sourceUrl, explanation}; no se cargan los bancos de demostración.
 const FINAL_TOTAL=120,FINAL_REAL=60,FINAL_ORIGINAL=60,FINAL_ROUND=40;
 function verifiedFinalBank(){
- const data=globalThis.OpoRadarTestFinalBank;
+ const data=globalThis.OpoRadarTestFinalBank || RadarBank.testFinal120;
  if(!Array.isArray(data)||data.length!==FINAL_TOTAL)return null;
  const ids=new Set(),questions=new Set();let real=0,original=0;
  for(const q of data){
