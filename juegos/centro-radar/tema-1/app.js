@@ -34,7 +34,7 @@ function verifiedFinalBank(){
    ||q.choices.some(a=>typeof a!=='string'||!a.trim())
    ||new Set(q.choices.map(a=>a.trim())).size!==q.choices.length
    ||(q.explanation!==undefined&&typeof q.explanation!=='string'))return null;
-  const statement=q.q.trim().replace(/\\s+/g,' ').toLocaleLowerCase('es');
+  const statement=q.q.trim().replace(/\s+/g,' ').toLocaleLowerCase('es');
   if(ids.has(q.id)||questions.has(statement))return null;
   ids.add(q.id);questions.add(statement);
   if(q.type==='official'){
