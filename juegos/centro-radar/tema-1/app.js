@@ -124,7 +124,8 @@ function finish(){
  const correct=marks.filter(x=>x.outcome==='acierto').length;
  const answeredCorrect=new Set(marks.filter(x=>x.outcome==='acierto').map(x=>x.id));const pending=round.filter(q=>!answeredCorrect.has(q.id)).map(q=>q.id);
  const unanswered=Math.max(0,round.length-marks.length);
- $('score').textContent=correct+' aciertos · '+marks.filter(x=>x.outcome==='duda').length+' dudas · '+marks.filter(x=>x.outcome==='fallo').length+' fallos'+(unanswered?' · '+unanswered+' sin responder':'')+' · '+round.length+' preguntas.';
+ const doubts=marks.filter(x=>x.outcome==='duda').length,failures=marks.filter(x=>x.outcome==='fallo').length;
+ $('score').textContent=correct+' '+(correct===1?'acierto':'aciertos')+' · '+doubts+' '+(doubts===1?'duda':'dudas')+' · '+failures+' '+(failures===1?'fallo':'fallos')+(unanswered?' · '+unanswered+' sin responder':'')+' · '+round.length+' '+(round.length===1?'pregunta.':'preguntas.');
  const groups=new Map();
  for(const q of round){
    const key=q.checkpoint||1,group=groups.get(key)||{total:0,ok:0,duda:0,fallo:0,blank:0};
