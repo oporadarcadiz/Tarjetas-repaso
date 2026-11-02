@@ -1,16 +1,117 @@
 'use strict';
 const $=id=>document.getElementById(id),names={1:'Preliminar + I–III',2:'IV–VI',3:'VII–IX',4:'X + disposiciones'};
 let storage;try{storage=localStorage;}catch{storage={getItem(){throw Error('Bloqueado')},setItem(){throw Error('Bloqueado')}}}
-const params=new URLSearchParams(location.search),directMode=params.get('modo'),titles={tarjetas:'Tarjetas Radar',trampas:'Caza la trampa',completa:'Completa la norma',visual:'Mapa constitucional',mixto:'Test Tema 1',real:'Preguntas reales'};
+const params=new URLSearchParams(location.search),directMode=params.get('modo'),titles={tarjetas:'Tarjetas Radar',trampas:'Caza la trampa',completa:'Completa la frase',visual:'Mapa constitucional',mixto:'Test Tema 1',real:'Preguntas reales',final:'Test Final · 40 preguntas'};
+// Demo del Tema 1: mostrar las preguntas gratuitas aprobadas. Web Chat gestionará la oferta comercial restante.
+// Cinco gratuitas definitivas: BANCO_PREGUNTAS filas 20, 224, 413, 473 y 651.
+const freeApproved=[{"id":"free-20","conceptId":"t1/free-20","checkpoint":4,"q":"Según el artículo 13.3 de la Constitución Española, quedan excluidos de la extradición:","choices":["Los delitos políticos, incluidos los actos de terrorismo.","Los delitos económicos y financieros.","Los delitos políticos, no considerándose como tales los actos de terrorismo."],"correct":2,"a":"Los delitos políticos, no considerándose como tales los actos de terrorismo.","theme":1,"type":"official","source":"Ayuntamiento de Fuenlabrada · 2024","sourceUrl":"https://convocapub.ayto-fuenlabrada.es/documentoPublico/download/3066","literalChecked":true,"adapted":false,"explanation":"","t":"BANCO_PREGUNTAS · fila 20; respuesta C según plantilla oficial. Sin texto explicativo consolidado en la hoja de origen.","sourceRow":20,"free":true},{"id":"free-224","conceptId":"t1/free-224","checkpoint":4,"q":"Según el artículo 1.1 de la Constitución Española, España se constituye en un estado social y democrático de derecho, que propugna como valores superiores del ordenamiento jurídico:","choices":["La libertad, la justicia, la igualdad y el pluralismo político.","La libertad, la justicia y la cooperación.","El artículo que tiene ese contenido es el político artículo 14.1.","La indisoluble unidad de la Nación Española."],"correct":0,"a":"La libertad, la justicia, la igualdad y el pluralismo político.","theme":1,"type":"official","source":"Ayuntamiento de Sanlúcar de Barrameda · 2022","sourceUrl":"https://www.sanlucardebarrameda.es/sites/default/files/EXAMEN%20CONSERJE%20CORREGIDO.pdf","literalChecked":true,"adapted":false,"explanation":"","t":"BANCO_PREGUNTAS · fila 224; respuesta A según plantilla oficial. Sin texto explicativo consolidado en la hoja de origen.","sourceRow":224,"free":true},{"id":"free-413","conceptId":"t1/free-413","checkpoint":4,"q":"Según la Constitución Española, la detención preventiva no podrá durar más del tiempo estrictamente necesario para la realización de las averiguaciones tendentes al esclarecimiento de los hechos, y, en todo caso, ¿en qué plazo máximo el detenido deberá ser puesto en libertad o a disposición de la autoridad judicial?:","choices":["Cuarenta y ocho horas.","Setenta y dos horas.","Veinticuatro horas."],"correct":1,"a":"Setenta y dos horas.","theme":1,"type":"official","source":"Cabildo de Gran Canaria · 2026","sourceUrl":"https://drive.google.com/file/d/1gAynR6rKMG_Xt3V9_GRvEo3mTEVlyyzf/view","literalChecked":true,"adapted":false,"explanation":"","t":"BANCO_PREGUNTAS · fila 413; respuesta B según plantilla oficial. Sin texto explicativo consolidado en la hoja de origen.","sourceRow":413,"free":true},{"id":"free-473","conceptId":"t1/free-473","checkpoint":4,"q":"La soberanía nacional, conforme al artículo 1.2 CE, implica que:","choices":["Las Comunidades Autónomas participan en su ejercicio en pie de igualdad con el Estado.","Todo poder del Estado emana del pueblo español.","Reside conjuntamente en el Rey y en las Cortes Generales.","Se ejerce exclusivamente mediante referéndum."],"correct":1,"a":"Todo poder del Estado emana del pueblo español.","theme":1,"type":"official","source":"Ayuntamiento de Barakaldo · 2026","sourceUrl":"https://drive.google.com/file/d/16HyR0bPsUi8PwtH_Cq7b3R5u8hkc8Opn/view","literalChecked":true,"adapted":false,"explanation":"","t":"BANCO_PREGUNTAS · fila 473; respuesta B según plantilla oficial.","sourceRow":473,"free":true},{"id":"free-651","conceptId":"t1/free-651","checkpoint":4,"q":"La nacionalidad española, según el artículo 11 de la Constitución Español, (señálese la respuesta correcta):","choices":["Puede ser retirada por motivos políticos.","Es irrenunciable para los españoles de origen.","Se adquiere, se conserva y se pierde de acuerdo con lo establecido en la Ley.","Se adquiere automáticamente al nacer en territorio español."],"correct":2,"a":"Se adquiere, se conserva y se pierde de acuerdo con lo establecido en la Ley.","theme":1,"type":"official","source":"Ayuntamiento de Santa Cruz de Tenerife · 2026","sourceUrl":"https://drive.google.com/file/d/1E7K_fLEjMOV_nJvo3zVZOZgRxb2Fg2LD/view","literalChecked":true,"adapted":false,"explanation":"","t":"BANCO_PREGUNTAS · fila 651; respuesta C según plantilla oficial. Sin texto explicativo consolidado en la hoja de origen.","sourceRow":651,"free":true}];
+const backToMenu=$('backToMenu');
+try{const from=new URL(params.get('volver')||document.referrer);const allowedHost=new Set([location.hostname,'oporadarcadiz.github.io','oporadar-cadiz.rosidekai.chatgpt.site']);if(from.protocol==='https:'&&allowedHost.has(from.hostname)&&/^(?:\/Temario)?\/tema-1\/juegos\/menu-memoria\/(?:index\.html|vocabulario-juridico\.html)?$/.test(from.pathname)){backToMenu.href=from.href;backToMenu.hidden=false;}}catch(_){}
 const progress=RadarProgress.create(storage);let mode,round=[],index=0,marks=[],rated=false,timer,deadline=0,advance=1;
+// El mismo concepto puede practicarse en varios modos. Cada uno mantiene sus propias dudas y fallos.
+const gameProgress={get(id){const own=progress.get(id+':'+mode);if(own)return own;const old=progress.get(id);return old?.mode===mode?old:null;},mark(id,outcome){return progress.mark(id+':'+mode,outcome,mode);},priority(id){return progress.priority(id+':'+mode);}};
 function notice(){$('notice').textContent='Al terminar podrás repetir las dudas, los fallos y las preguntas sin responder.';}
 function screen(name){for(const id of ['home','game','result'])$(id).hidden=id!==name;$('homeButton').hidden=name==='home'||Boolean(directMode);document.body.classList.toggle('playing',name==='game');}
-function pool(){return RadarProgress.scope(RadarBank.mode(mode),+$('checkpoint').value,$('scope').value==='new');}
+function pool(){// En este modo demostración se combinan ejercicios propios y preguntas gratuitas.
+ const allowed=mode==='real'?freeApproved:mode==='mixto'?[...RadarBank.mode('oporadar'),...freeApproved]:RadarBank.mode(mode).filter(q=>q.type!=='official');
+ return RadarProgress.scope(allowed,+$('checkpoint').value,$('scope').value==='new');}
+
+// Test Final: únicamente Banco de Preguntas puede aportar el conjunto verificado.
+// Contrato para la integración futura: window.OpoRadarTestFinalBank con 120 objetos
+// {id, q, choices, correct, type:'official'|'original', verified:true,
+//  source, sourceUrl, explanation}; no se cargan los bancos de demostración.
+const FINAL_TOTAL=120,FINAL_REAL=60,FINAL_ORIGINAL=60,FINAL_ROUND=40;
+function verifiedFinalBank(){
+ const data=globalThis.OpoRadarTestFinalBank || RadarBank.testFinal120;
+ if(!Array.isArray(data)||data.length!==FINAL_TOTAL)return null;
+ const ids=new Set(),questions=new Set();let real=0,original=0;
+ for(const q of data){
+  if(!q||q.verified!==true||!['official','original'].includes(q.type)
+   ||typeof q.id!=='string'||!q.id.trim()
+   ||typeof q.q!=='string'||!q.q.trim()
+   ||!Array.isArray(q.choices)||q.choices.length<2
+   ||!Number.isInteger(q.correct)||q.correct<0||q.correct>=q.choices.length
+   ||q.choices.some(a=>typeof a!=='string'||!a.trim())
+   ||new Set(q.choices.map(a=>a.trim())).size!==q.choices.length
+   ||(q.explanation!==undefined&&typeof q.explanation!=='string'))return null;
+  const statement=q.q.trim().replace(/\s+/g,' ').toLocaleLowerCase('es');
+  if(ids.has(q.id)||questions.has(statement))return null;
+  ids.add(q.id);questions.add(statement);
+  if(q.type==='official'){
+   real++;
+   if(typeof q.source!=='string'||!q.source.trim()||typeof q.sourceUrl!=='string')return null;
+   try{const u=new URL(q.sourceUrl);if(!['https:','http:'].includes(u.protocol))return null;}catch{return null;}
+  }else original++;
+ }
+ return real===FINAL_REAL&&original===FINAL_ORIGINAL?data:null;
+}
+// Fisher–Yates: 40 elementos diferentes de una permutación de los 120.
+// Se reinicia de cero cada intento: no hay cuotas por procedencia ni ciclos.
+function randomPermutation(source){
+ const result=[...source];
+ for(let i=result.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [result[i],result[j]]=[result[j],result[i]];
+ }
+ return result;
+}
+function startFinal(){
+ clearInterval(timer);
+ const data=verifiedFinalBank();
+ if(!data){
+  $('notice').textContent='Test Final aún no disponible: falta recibir las 120 preguntas verificadas (60 oficiales y 60 originales) de Banco de Preguntas.';
+  return;
+ }
+ mode='final';round=randomPermutation(data).slice(0,FINAL_ROUND);
+ index=0;marks=[];deadline=0;screen('game');render();
+}
+function finalAnswer(selectedIndex){
+ if(rated)return;
+ const q=round[index];rated=true;
+ const outcome=selectedIndex===null?'blank':selectedIndex===q.correct?'acierto':'fallo';
+ marks.push({id:q.id,outcome,selectedIndex});
+ const correct=q.choices[q.correct];
+ $('feedback').textContent=(outcome==='acierto'?'Correcto. ':outcome==='blank'?'Sin responder. ':'Respuesta incorrecta. ')
+   +'Respuesta correcta: '+correct+(q.explanation?' · Explicación: '+q.explanation:'');
+ for(const b of $('controls').querySelectorAll('button,input'))b.disabled=true;
+ $('next').hidden=false;
+}
+function renderFinal(q){
+ $('kind').textContent=q.type==='official'?'PREGUNTA OFICIAL VERIFICADA · '+q.source:'PREGUNTA ORIGINAL VERIFICADA · OPORADARCÁDIZ';
+ $('sourceDescription').hidden=q.type!=='official';
+ if(q.type==='official')$('sourceDescription').textContent='Pregunta y respuesta verificadas por Banco de Preguntas.';
+ const order=randomPermutation(q.choices.map((label,i)=>({label,i})));
+ for(const option of order)button(option.label,()=>finalAnswer(option.i));
+ button('Dejar sin responder',()=>finalAnswer(null));
+}
+function finishFinal(){
+ clearInterval(timer);screen('result');
+ const ok=marks.filter(m=>m.outcome==='acierto').length;
+ const wrong=marks.filter(m=>m.outcome==='fallo').length;
+ const blank=FINAL_ROUND-ok-wrong;
+ const grade=(ok*10/FINAL_ROUND).toFixed(2).replace('.',',');
+ $('score').textContent=ok+' acertadas · '+wrong+' falladas · '+blank+' sin responder · Nota: '+grade+' / 10.';
+ $('diagnostic').replaceChildren();
+ const marked=new Map(marks.map(m=>[m.id,m]));
+ for(const [i,q] of round.entries()){
+  const m=marked.get(q.id),status=!m||m.outcome==='blank'?'Sin responder':m.outcome==='acierto'?'Acertada':'Fallada';
+  const block=document.createElement('div');block.className='diagnostic-row';
+  const title=document.createElement('strong');title.textContent='Pregunta '+(i+1)+' · '+status+' · '+q.q;
+  const detail=document.createElement('span');
+  detail.textContent=(m&&m.selectedIndex!==null?'Tu respuesta: '+q.choices[m.selectedIndex]+' · ':'')
+    +'Respuesta correcta: '+q.choices[q.correct]+(q.explanation?' · Explicación: '+q.explanation:'');
+  block.append(title,detail);$('diagnostic').append(block);
+ }
+ $('nextAdvice').textContent='Nota sobre 10 calculada por aciertos (sin penalización por fallos o blancos). Cada nuevo test sortea 40 preguntas distintas del banco completo.';
+ $('retry').disabled=false;$('retry').textContent='Iniciar otro test de 40 preguntas';$('retry').onclick=startFinal;
+}
+
 function button(text,fn){const b=document.createElement('button');b.textContent=text;b.addEventListener('click',fn);$('controls').append(b);return b;}
-function start(nextMode,review=false,onlyIds=[]){clearInterval(timer);mode=nextMode;let list=pool();if(review)list=list.filter(x=>onlyIds.length?onlyIds.includes(x.id):['fallo','duda'].includes(progress.get(x.conceptId)?.lastOutcome));round=RadarProgress.select(list,onlyIds.length?onlyIds.length:+$('count').value,progress);if(!round.length){$('notice').textContent='No hay material de este modo en esta zona'+(review?' con fallos pendientes.':'.');return;}index=0;marks=[];const limited=!review&&round.length<+$('count').value;deadline=mode==='express'?Date.now()+60000:0;screen('game');render();if(limited)$('feedback').textContent='Hay '+round.length+' preguntas distintas disponibles en este bloque. No añadiremos preguntas inventadas para completar la ronda.';if(deadline)timer=setInterval(()=>{if(Date.now()>=deadline)finish();else $('position').textContent='Radar Express · '+Math.ceil((deadline-Date.now())/1000)+' s';},250);}
-function rate(outcome,answer,cardRating=false,advanceNow=false){if(rated)return;rated=true;const q=round[index];progress.mark(q.conceptId,outcome,mode);marks.push({id:q.id,outcome});if(advanceNow){index+=advance;index>=round.length?finish():render();return;}if(cardRating){const state=outcome==='fallo'?'Fallé.':outcome==='duda'?'Lo marco como duda.':'Acerté.';$('feedback').textContent=state+((outcome!=='acierto'&&q.explanation)?' Recuerda: '+q.explanation:'');}else {const prefix=outcome==='fallo'?'Esta vez no. ':outcome==='duda'?'Marcado para repasar. ':'Correcto. ';const explanation=q.explanation?' · Explicación: '+q.explanation:'';$('feedback').textContent=prefix+'Respuesta: '+(answer||q.a)+explanation;}for(const b of $('controls').querySelectorAll('button,input'))b.disabled=true;$('next').hidden=false;notice();}
+function start(nextMode,review=false,onlyIds=[]){if(nextMode==='final'){startFinal();return;}clearInterval(timer);mode=nextMode;let list=pool();if(review)list=list.filter(x=>onlyIds.length?onlyIds.includes(x.id):['fallo','duda'].includes(gameProgress.get(x.conceptId)?.lastOutcome));round=RadarProgress.select(list,onlyIds.length?onlyIds.length:+$('count').value,gameProgress);if(!round.length){$('notice').textContent='No hay material de este modo en esta zona'+(review?' con fallos pendientes.':'.');return;}index=0;marks=[];const limited=!review&&round.length<+$('count').value;deadline=mode==='express'?Date.now()+60000:0;screen('game');render();if(limited)$('feedback').textContent='Hay '+round.length+' preguntas distintas disponibles en este bloque. Se usan los ejercicios ya existentes y la selección gratuita disponible.';if(deadline)timer=setInterval(()=>{if(Date.now()>=deadline)finish();else $('position').textContent='Radar Express · '+Math.ceil((deadline-Date.now())/1000)+' s';},250);}
+function rate(outcome,answer,cardRating=false,advanceNow=false){if(rated)return;rated=true;const q=round[index];gameProgress.mark(q.conceptId,outcome,mode);marks.push({id:q.id,outcome});if(advanceNow){index+=advance;index>=round.length?finish():render();return;}if(cardRating){const state=outcome==='fallo'?'Fallé.':outcome==='duda'?'Lo marco como duda.':'Acerté.';$('feedback').textContent=state+((outcome!=='acierto'&&q.explanation)?' Recuerda: '+q.explanation:'');}else {const prefix=outcome==='fallo'?'Esta vez no. ':outcome==='duda'?'Marcado para repasar. ':'Correcto. ';const explanation=q.explanation?' · Explicación: '+q.explanation:'';$('feedback').textContent=prefix+'Respuesta: '+(answer||q.a)+explanation;}for(const b of $('controls').querySelectorAll('button,input'))b.disabled=true;$('next').hidden=false;notice();}
 function shuffled(a){return a.map(v=>({v,r:Math.random()})).sort((a,b)=>a.r-b.r).map(x=>x.v);}
 function render(){rated=false;advance=1;$('controls').className='';const q=round[index],correct=marks.filter(x=>x.outcome==='acierto').length,kind=q.type==='official'?(q.literalChecked?'ENUNCIADO Y OPCIONES COTEJADOS · ': 'PREGUNTA DE BANCO · REDACCIÓN PENDIENTE DE COTEJO · ')+q.source:'CREADA POR OPORADARCÁDIZ';$('position').textContent=(index+1)+' de '+round.length+' · '+correct+' '+(correct===1?'acierto':'aciertos');$('kind').textContent=kind;$('kind').hidden=false;const sourceLink=$('sourceLink'),sourceDescription=$('sourceDescription');sourceLink.hidden=!(q.type==='official'&&q.sourceUrl);if(!sourceLink.hidden)sourceLink.href=q.sourceUrl;sourceDescription.hidden=q.type!=='official';sourceDescription.textContent=q.type==='official'?(q.literalChecked?'Enunciado y opciones contrastados con el PDF del examen municipal. La corrección deberá validarse aparte con la plantilla oficial.':'La literalidad o adaptación de esta redacción todavía no se ha comprobado frente al PDF original.'):'';$('question').textContent=q.q;$('feedback').textContent='';$('controls').replaceChildren();$('next').hidden=true;$('image').hidden=mode!=='visual';if(mode==='visual'){$('image').src='assets/'+q.image;$('question').textContent='¿Qué debes recordar al ver esta imagen?';}
+ if(mode==='final'){renderFinal(q);$('question').focus();return;}
  if(mode==='empareja'){renderPairs();return;}
  if(mode==='tarjetas'){button('Ver respuesta',()=>{const answer=document.createElement('p');answer.className='card-answer';answer.textContent=q.a;$('controls').replaceChildren(answer);button('Acerté',()=>rate('acierto','',true));button('Dudé',()=>rate('duda','',true));button('Fallé',()=>rate('fallo','',true));});}
  else if(mode==='trampas'){const truth=Math.random()>=.5;$('question').textContent=truth?q.a:q.trap;button('Correcta',()=>rate(truth?'acierto':'fallo',q.a));button('Hay una trampa',()=>rate(truth?'fallo':'acierto',q.a));}
@@ -18,11 +119,13 @@ function render(){rated=false;advance=1;$('controls').className='';const q=round
  else{if(mode==='relacion')$('question').textContent='Relaciona: '+q.relation;if(mode==='empareja')$('question').textContent='Empareja: '+q.q;const distractors=shuffled(pool().filter(x=>x.id!==q.id&&x.a!==q.a).map(x=>x.a));const choices=Array.isArray(q.choices)?shuffled(q.choices):shuffled([q.a,...new Set(distractors.slice(0,mode==='visual'?2:3))]);for(const choice of choices)button(choice,()=>rate(choice===q.a?'acierto':'fallo'));button('Dudé',()=>rate('duda'));}
  $('question').focus();}
 function finish(){
+ if(mode==='final'){finishFinal();return;}
  clearInterval(timer);screen('result');
  const correct=marks.filter(x=>x.outcome==='acierto').length;
  const answeredCorrect=new Set(marks.filter(x=>x.outcome==='acierto').map(x=>x.id));const pending=round.filter(q=>!answeredCorrect.has(q.id)).map(q=>q.id);
  const unanswered=Math.max(0,round.length-marks.length);
- $('score').textContent=correct+' aciertos · '+marks.filter(x=>x.outcome==='duda').length+' dudas · '+marks.filter(x=>x.outcome==='fallo').length+' fallos'+(unanswered?' · '+unanswered+' sin responder':'')+' · '+round.length+' preguntas.';
+ const doubts=marks.filter(x=>x.outcome==='duda').length,failures=marks.filter(x=>x.outcome==='fallo').length;
+ $('score').textContent=correct+' '+(correct===1?'acierto':'aciertos')+' · '+doubts+' '+(doubts===1?'duda':'dudas')+' · '+failures+' '+(failures===1?'fallo':'fallos')+(unanswered?' · '+unanswered+' sin responder':'')+' · '+round.length+' '+(round.length===1?'pregunta.':'preguntas.');
  const groups=new Map();
  for(const q of round){
    const key=q.checkpoint||1,group=groups.get(key)||{total:0,ok:0,duda:0,fallo:0,blank:0};
@@ -52,11 +155,11 @@ function renderPairs(){
  for(const q of rights){const b=document.createElement('button');b.textContent=q.a;b.dataset.pair=q.id;b.onclick=()=>{
   if(!chosen){$('feedback').textContent='Elige primero una señal de la izquierda.';return;}
   if(chosen.id!==q.id){failed.add(chosen.id);$('feedback').textContent='Esa no es la pareja. Inténtalo de nuevo.';return;}
-  const outcome=failed.has(q.id)?'fallo':'acierto';progress.mark(q.conceptId,outcome,mode);marks.push({id:q.id,outcome});completed.add(q.id);b.disabled=true;left.querySelector('[data-pair="'+q.id+'"]').disabled=true;chosen=null;$('feedback').textContent=outcome==='fallo'?'Pareja encontrada. La guardamos para repasar.':'Pareja localizada.';notice();
+  const outcome=failed.has(q.id)?'fallo':'acierto';gameProgress.mark(q.conceptId,outcome,mode);marks.push({id:q.id,outcome});completed.add(q.id);b.disabled=true;left.querySelector('[data-pair="'+q.id+'"]').disabled=true;chosen=null;$('feedback').textContent=outcome==='fallo'?'Pareja encontrada. La guardamos para repasar.':'Pareja localizada.';notice();
   if(completed.size===batch.length){rated=true;$('next').hidden=false;}
  };right.append(b)}
  $('question').focus();
 }
 $('next').onclick=()=>{index+=advance;index>=round.length?finish():render()};$('homeButton').onclick=()=>{clearInterval(timer);screen('home')};
 function coverage(){const cp=+$('checkpoint').value;$('scopeLabel').hidden=cp===1;if(cp===1)$('scope').value='all';$('coverage').textContent='Lo nuevo: '+names[cp]+'. Acumulado: '+Object.keys(names).filter(n=>+n<=cp).map(n=>names[n]).join(' + ');}
-$('checkpoint').onchange=coverage;document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>start(b.dataset.mode));const requested=params.get('radar');if(['1','2','3','4'].includes(requested))$('checkpoint').value=requested;coverage();notice();if(['tarjetas','trampas','completa','visual','mixto','real'].includes(directMode)){const title=$('activityTitle');title.textContent=titles[directMode];title.hidden=false;document.querySelector('.modes').hidden=true;$('checkpoint').closest('label').hidden=true;$('scopeLabel').hidden=true;$('coverage').hidden=true;const startButton=$('startDirect');startButton.hidden=false;startButton.textContent='Empezar '+titles[directMode];startButton.onclick=()=>start(directMode);}
+$('checkpoint').onchange=coverage;document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>start(b.dataset.mode));const requested=params.get('radar');if(['1','2','3','4'].includes(requested))$('checkpoint').value=requested;coverage();notice();if(['tarjetas','trampas','completa','visual','mixto','real','final'].includes(directMode)){const title=$('activityTitle');title.textContent=titles[directMode];title.hidden=false;document.querySelector('.modes').hidden=true;$('checkpoint').closest('label').hidden=true;$('scopeLabel').hidden=true;$('coverage').hidden=true;const startButton=$('startDirect');startButton.hidden=false;startButton.textContent=directMode==='final'?'Iniciar test': 'Empezar '+titles[directMode];startButton.onclick=()=>start(directMode);if(directMode==='final'){$('count').closest('label').hidden=true;$('sheetStatus').textContent='Test Final de 40 preguntas: se activará al recibir 120 preguntas verificadas de Banco de Preguntas. Hasta entonces no utiliza el banco provisional ni ejercicios de demostración.';}}
